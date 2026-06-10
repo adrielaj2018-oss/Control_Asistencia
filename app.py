@@ -433,7 +433,14 @@ def manifest():
 def sw():
     return Response("self.addEventListener('install',e=>self.skipWaiting()); self.addEventListener('fetch',e=>{});", mimetype='application/javascript')
 
-if __name__ == '__main__':
+# IMPORTANTE PARA RENDER/GUNICORN:
+# En Render se ejecuta con `gunicorn app:app`, por eso el bloque __main__ no corre.
+# Inicializamos la BD al importar el módulo para evitar Internal Server Error en /login.
+try:
     init_db()
+except Exception as e:
+    print("ERROR inicializando base de datos:", e)
+
+if __name__ == '__main__':
     port = int(os.getenv('PORT', '5000'))
     app.run(host='0.0.0.0', port=port, debug=False)
