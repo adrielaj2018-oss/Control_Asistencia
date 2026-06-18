@@ -423,12 +423,12 @@ def detalle_hoja(hoja_id):
     <div class="modal fade" id="modalCopiar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('copiar_labor_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-files"></i> Copiar labor existente</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small">Selecciona el documento/labor que deseas copiar. No se copiará nada hasta presionar <b>COPIAR SELECCIONADO</b>.</div><div class="copy-list">{% for l in labores %}<label class="d-block mb-2"><input type="radio" name="labor_id_origen" value="{{l.id}}" required> <b>{{l.labor}}</b><br><span class="small text-muted">{{l.grupo}} / {{l.subgrupo}} / {{l.turno}} / {{l.tipo_tareo}}</span></label>{% endfor %}</div><label class="form-label mt-2">Nuevo nombre de labor (opcional)</label><input name="labor_nueva" class="form-control" placeholder="Dejar vacío para copiar igual"></div><div class="modal-footer"><button class="btn btn-green w-100">COPIAR SELECCIONADO</button></div></form></div></div></div>
     <div class="modal fade" id="modalBuscar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-search"></i> Buscar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input id="buscarDni" class="form-control mb-2" placeholder="DNI / QR / código barras"><button class="btn btn-green w-100" onclick="buscarTrabajadorLibre()">BUSCAR</button><div id="buscarResultado" class="alert alert-light border mt-2">Esperando búsqueda.</div></div></div></div></div>
     <div class="modal fade" id="modalHora" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-clock"></i> Horarios de trabajo y refrigerio</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="clock-face"><span class="clock-num" style="top:8px;left:86px">0</span><span class="clock-num" style="top:25px;right:45px">5</span><span class="clock-bubble">10</span><span class="clock-num" style="top:88px;right:20px">15</span><span class="clock-num" style="bottom:45px;right:38px">20</span><span class="clock-num" style="bottom:18px;left:86px">30</span><span class="clock-num" style="bottom:45px;left:38px">35</span><span class="clock-num" style="top:88px;left:20px">40</span><span class="clock-num" style="top:55px;left:28px">50</span><span class="clock-num" style="top:28px;left:55px">55</span><span class="clock-hand"></span><span class="clock-dot"></span></div><div class="alert alert-success small"><b>Turno NOCHE:</b> recomendado 22:00 a 06:00. Puedes modificarlo según tu operación.</div><div class="row g-2"><div class="col-6"><label class="form-label">Inicio trabajo</label><input id="horaInicioDefault" type="time" class="form-control" value="06:30"></div><div class="col-6"><label class="form-label">Fin trabajo</label><input id="horaFinDefault" type="time" class="form-control" value="16:30"></div><div class="col-6"><label class="form-label">Inicio refrigerio</label><input id="refInicioDefault" type="time" class="form-control" value="12:00"></div><div class="col-6"><label class="form-label">Fin refrigerio</label><input id="refFinDefault" type="time" class="form-control" value="13:00"></div></div><button class="btn btn-green w-100 mt-3" type="button" onclick="aplicarHorarioRegistro()" data-bs-dismiss="modal">APLICAR AL REGISTRO</button></div></div></div></div>
-    <div class="modal fade" id="modalRegistro" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='trabajadores')}}" id="frmTrab"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-person-plus"></i> Registrar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniTrab" class="form-control" placeholder="Escanee o digite DNI" autocomplete="off"><button type="button" class="btn btn-green" onclick="abrirScanner('readerTrab','dniTrab')"><i class="bi bi-upc-scan"></i></button></div><div id="readerTrab" style="display:none;margin-top:8px"></div><div id="dniStatus" class="mt-2 field-help">Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.</div><input type="hidden" name="dnis_masivos" id="dnisMasivos"><div class="queue-title">PRE-REGISTRO DE TRABAJADORES</div><div id="workerQueue" class="worker-queue"><div class="text-muted small text-center">Aún no hay trabajadores detectados.</div></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.grupo}} / {{l.subgrupo}} / {{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><div class="row g-2"><div class="col-6"><label class="form-label">TURNO</label><select name="turno" id="turnoTrab" class="form-select" onchange="setTurnoHorario()"><option>DIA</option><option>NOCHE</option></select></div><div class="col-6"><label class="form-label">TIPO</label><select name="tipo_tareo" class="form-select"><option>JORNAL</option><option>RENDIMIENTO</option></select></div><div class="col-6"><label class="form-label">H. INICIO</label><input name="hora_inicio" id="horaInicioTrab" type="time" class="form-control time-click" value="06:30" onclick="abrirRelojPara(this)"></div><div class="col-6"><label class="form-label">H. FIN</label><input name="hora_fin" id="horaFinTrab" type="time" class="form-control time-click" value="16:30" onclick="abrirRelojPara(this)"></div><div class="col-6"><label class="form-label">REF. INI</label><input name="ref_inicio" id="refInicioTrab" type="time" class="form-control time-click" value="12:00" onclick="abrirRelojPara(this)"></div><div class="col-6"><label class="form-label">REF. FIN</label><input name="ref_fin" id="refFinTrab" type="time" class="form-control time-click" value="13:00" onclick="abrirRelojPara(this)"></div></div><input name="horas" type="hidden" value="9.75"><input name="cantidad" type="hidden" value="0.00"></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR PRE-REGISTRO / TODOS</button></div></form></div></div></div>
+    <div class="modal fade" id="modalRegistro" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='trabajadores')}}" id="frmTrab"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-person-plus"></i> Registrar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniTrab" class="form-control" placeholder="Escanee o digite DNI" autocomplete="off" inputmode="numeric" maxlength="30" oninput="autoDetectarDniInline(this)" onkeyup="autoDetectarDniInline(this)" onchange="autoDetectarDniInline(this)"><button type="button" class="btn btn-green" onclick="abrirScanner('readerTrab','dniTrab')"><i class="bi bi-upc-scan"></i></button></div><div id="readerTrab" style="display:none;margin-top:8px"></div><div id="dniStatus" class="mt-2 field-help">Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.</div><input type="hidden" name="dnis_masivos" id="dnisMasivos"><div class="queue-title">PRE-REGISTRO DE TRABAJADORES</div><div id="workerQueue" class="worker-queue"><div class="text-muted small text-center">Aún no hay trabajadores detectados.</div></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.grupo}} / {{l.subgrupo}} / {{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><input name="turno" id="turnoTrab" type="hidden" value="DIA"><input name="tipo_tareo" type="hidden" value="JORNAL"><input name="hora_inicio" id="horaInicioTrab" type="hidden" value="06:30"><input name="hora_fin" id="horaFinTrab" type="hidden" value="16:30"><input name="ref_inicio" id="refInicioTrab" type="hidden" value="12:00"><input name="ref_fin" id="refFinTrab" type="hidden" value="13:00"><input name="horas" type="hidden" value="9.75"><input name="cantidad" type="hidden" value="0.00"><div class="alert alert-success small mt-2 mb-0"><b>Horario activo:</b> 06:30 - 16:30 / Refrigerio 12:00 - 13:00. Se edita desde el icono de reloj del módulo Trabajadores.</div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR TRABAJADORES</button></div></form></div></div></div>
     <div class="modal fade" id="modalAvance" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='rendimiento')}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-upc-scan"></i> Registrar avance / lectura</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniAvance" class="form-control" placeholder="Escanee o digite DNI" required><button type="button" class="btn btn-green" onclick="abrirScanner('readerAvance','dniAvance')"><i class="bi bi-upc-scan"></i></button></div><div id="readerAvance" style="display:none;margin-top:8px"></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><div class="row g-2"><div class="col-6"><label class="form-label">A. DIURNO</label><input name="cantidad" type="number" step="0.01" class="form-control" value="1.00"></div><div class="col-6"><label class="form-label">A. NOCT.</label><input name="a_noct" type="number" step="0.01" class="form-control" value="0.00"></div><div class="col-6"><label class="form-label">UNIDAD</label><select name="unidad" class="form-select"><option>BALDE</option><option>KG</option><option>JABA</option><option>UNIDAD</option></select></div><div class="col-6"><label class="form-label">MÉTODO</label><select name="metodo" class="form-select"><option>QR/CÓDIGO</option><option>DIGITACIÓN</option><option>LECTOR USB</option></select></div></div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR AVANCE</button></div></form></div></div></div>
     <script>
       function limpiarDni(v){let raw=(v||'').toString();let m=raw.match(/(?:^|\D)(\d{8})(?:\D|$)/);let d=m?m[1]:raw.replace(/\D/g,'');return d.length>=8?d.slice(-8):d;}
       async function buscarTrabajadorLibre(){let dni=limpiarDni(document.getElementById('buscarDni').value);document.getElementById('buscarDni').value=dni;let box=document.getElementById('buscarResultado');if(dni.length!==8){box.className='alert alert-warning mt-2';box.innerText='Ingrese DNI válido de 8 dígitos.';return;}let r=await fetch('/api/trabajador/'+dni);let j=await r.json();if(!j.ok){box.className='alert alert-danger mt-2';box.innerText=j.msg;return;}box.className='alert alert-success mt-2';box.innerHTML='<b>'+j.trabajador.trabajador+'</b><br>'+j.trabajador.dni+' · '+(j.trabajador.cargo||'');beep();}
-      let scanner=null;function abrirScanner(readerId,inputId){let el=document.getElementById(readerId);el.style.display='block';if(scanner){scanner.stop().catch(()=>{});scanner=null;}scanner=new Html5Qrcode(readerId);scanner.start({facingMode:'environment'},{fps:10,qrbox:220},decoded=>{document.getElementById(inputId).value=limpiarDni(decoded);document.getElementById(inputId).dispatchEvent(new Event('input'));beep();scanner.stop().catch(()=>{});el.style.display='none';}).catch(()=>alert('No se pudo activar cámara. Revise permisos.'));}
+      let scanner=null;function abrirScanner(readerId,inputId){let el=document.getElementById(readerId);el.style.display='block';if(scanner){scanner.stop().catch(()=>{});scanner=null;}scanner=new Html5Qrcode(readerId);scanner.start({facingMode:'environment'},{fps:10,qrbox:220},decoded=>{document.getElementById(inputId).value=limpiarDni(decoded);document.getElementById(inputId).dispatchEvent(new Event('input',{bubbles:true})); if(inputId==='dniTrab'){autoDetectarDniInline(document.getElementById(inputId));} beep();scanner.stop().catch(()=>{});el.style.display='none';}).catch(()=>alert('No se pudo activar cámara. Revise permisos.'));}
       function setTurnoHorario(){let t=document.getElementById('turnoTrab')?.value;if(t==='NOCHE'){horaInicioTrab.value='22:00';horaFinTrab.value='06:00';}else{horaInicioTrab.value='06:30';horaFinTrab.value='16:30';}}
       let activeTimeInput=null;
       function abrirRelojPara(inp){activeTimeInput=inp;['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'].forEach((id,i)=>{let el=document.getElementById(id); if(!el)return; const src=[horaInicioTrab,horaFinTrab,refInicioTrab,refFinTrab][i]; el.value=src.value;}); const m=new bootstrap.Modal(document.getElementById('modalHora')); m.show();}
@@ -460,22 +460,38 @@ def detalle_hoja(hoja_id):
       const workerMap=new Map();
       function renderQueue(){const q=document.getElementById('workerQueue'), h=document.getElementById('dnisMasivos'); if(!q||!h)return; h.value=[...workerMap.keys()].join(','); if(workerMap.size===0){q.innerHTML='<div class="text-muted small text-center">Aún no hay trabajadores detectados.</div>';return;} q.innerHTML=[...workerMap.entries()].map(([dni,n])=>'<div class="queue-item"><div><b>'+dni+'</b><br><span>'+n+'</span></div><button type="button" class="btn btn-sm btn-outline-danger" onclick="workerMap.delete(\''+dni+'\');renderQueue()">×</button></div>').join('');}
       async function detectarDniTrab(){const inp=document.getElementById('dniTrab'), st=document.getElementById('dniStatus'); if(!inp||!st)return; const dni=limpiarDni(inp.value); if(dni.length!==8)return; inp.value=dni; let r=await fetch('/api/trabajador/'+dni); let j=await r.json(); if(!j.ok){st.className='scan-bad mt-2 flash';st.textContent=j.msg;beep();return;} if(workerMap.has(dni)){st.className='scan-ok mt-2 flash';st.innerHTML='✓ DNI ya está en pre-registro: <b>'+dni+'</b>';beep(); setTimeout(()=>{inp.value='';inp.focus();},200); return;} workerMap.set(dni,j.trabajador.trabajador||'TRABAJADOR'); renderQueue(); st.className='scan-ok mt-2'; st.innerHTML='✓ Reconocido: <b>'+j.trabajador.trabajador+'</b>'; beep(); setTimeout(()=>{inp.value='';inp.focus();},250);}
-      function bindDniAuto(){const inp=document.getElementById('dniTrab'); if(!inp)return; let t=null; inp.addEventListener('input',()=>{clearTimeout(t); if(limpiarDni(inp.value).length>=8)t=setTimeout(detectarDniTrab,120);}); inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();detectarDniTrab();}}); inp.addEventListener('paste',()=>setTimeout(detectarDniTrab,80));}
+      function bindDniAuto(){const inp=document.getElementById('dniTrab'); if(!inp || inp.dataset.boundV9)return; inp.dataset.boundV9='1'; inp.addEventListener('input',()=>autoDetectarDniInline(inp)); inp.addEventListener('keyup',()=>autoDetectarDniInline(inp)); inp.addEventListener('change',()=>autoDetectarDniInline(inp)); inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();autoDetectarDniInline(inp);}}); inp.addEventListener('paste',()=>setTimeout(()=>autoDetectarDniInline(inp),30));}
       
 
-      const MAESTROS_DET={{ maestros_json|safe }};
+      let MAESTROS_CACHE={{ maestros_json|safe }};
+      async function cargarMaestrosV10(){
+        if(MAESTROS_CACHE && MAESTROS_CACHE.length){return MAESTROS_CACHE;}
+        try{
+          const r=await fetch('/api/actividades-maestras',{cache:'no-store',credentials:'same-origin'});
+          const j=await r.json();
+          if(j.ok && Array.isArray(j.data) && j.data.length){MAESTROS_CACHE=j.data; return MAESTROS_CACHE;}
+        }catch(e){}
+        MAESTROS_CACHE=[{% for l in labores %}{desc_actividad:{{l.grupo|tojson}},desc_labor:{{l.subgrupo|tojson}},desc_consumidor:{{l.labor|tojson}},cod_actividad:'',cod_labor:'',cod_consumidor:''},{% endfor %}];
+        return MAESTROS_CACHE;
+      }
+      let MAESTROS_DET=MAESTROS_CACHE;
       function _uniq(a){return [...new Set(a.filter(Boolean))].sort();}
       function _fillDL(id, arr){const dl=document.getElementById(id); if(!dl)return; dl.innerHTML=''; arr.slice(0,250).forEach(v=>{let o=document.createElement('option'); o.value=v; dl.appendChild(o);});}
       function _showSuggest(boxId, input, arr, cb){const box=document.getElementById(boxId); if(!box)return; const q=(input.value||'').toUpperCase(); const vals=arr.filter(v=>String(v).toUpperCase().includes(q)).slice(0,12); if(!q||!vals.length){box.style.display='none';box.innerHTML='';return;} box.innerHTML=vals.map(v=>'<div>'+v+'</div>').join(''); box.style.display='block'; [...box.children].forEach(div=>div.onclick=()=>{input.value=div.textContent; box.style.display='none'; cb&&cb();});}
-      function bindModalMaestros(){
+      async function bindModalMaestros(){
+        MAESTROS_DET = await cargarMaestrosV10();
         const a=document.getElementById('modalActividad'), l=document.getElementById('modalLaborInput'), c=document.getElementById('modalConsumidor'); if(!a||!l)return;
         const acts=_uniq(MAESTROS_DET.map(x=>x.desc_actividad||x.cod_actividad)); _fillDL('modal_actividad_list', acts);
-        function rowsA(){const q=(a.value||'').toUpperCase();return MAESTROS_DET.filter(x=>!q||String(x.desc_actividad||'').toUpperCase().includes(q)||String(x.cod_actividad||'').toUpperCase().includes(q));}
-        function refreshL(){const rows=rowsA(); _fillDL('modal_labor_list', _uniq(rows.map(x=>x.desc_labor||x.cod_labor))); refreshC();}
-        function refreshC(){const q=(l.value||'').toUpperCase(); const rows=rowsA().filter(x=>!q||String(x.desc_labor||'').toUpperCase().includes(q)||String(x.cod_labor||'').toUpperCase().includes(q)); _fillDL('modal_consumidor_list', _uniq(rows.map(x=>x.desc_consumidor||x.cod_consumidor)));}
-        a.addEventListener('input',()=>{_showSuggest('modalActividadSuggest',a,acts,refreshL);refreshL();});
-        l.addEventListener('input',()=>{_showSuggest('modalLaborSuggest',l,_uniq(rowsA().map(x=>x.desc_labor||x.cod_labor)),refreshC);refreshC();});
-        c&&c.addEventListener('input',()=>{const q=(l.value||'').toUpperCase(); const vals=_uniq(rowsA().filter(x=>!q||String(x.desc_labor||'').toUpperCase().includes(q)).map(x=>x.desc_consumidor||x.cod_consumidor)); _showSuggest('modalConsumidorSuggest',c,vals);});
+        function norm(v){return String(v||'').toUpperCase().trim();}
+        function rowsA(){const q=norm(a.value);return MAESTROS_DET.filter(x=>!q||norm(x.desc_actividad).includes(q)||norm(x.cod_actividad).includes(q));}
+        function rowsL(){const q=norm(l.value);return rowsA().filter(x=>!q||norm(x.desc_labor).includes(q)||norm(x.cod_labor).includes(q));}
+        function refreshL(){const rows=rowsA(); const vals=_uniq(rows.map(x=>x.desc_labor||x.cod_labor)); _fillDL('modal_labor_list', vals); _showSuggest('modalLaborSuggest',l,vals,refreshC); refreshC();}
+        function refreshC(){const vals=_uniq(rowsL().map(x=>x.desc_consumidor||x.cod_consumidor)); _fillDL('modal_consumidor_list', vals); if(c)_showSuggest('modalConsumidorSuggest',c,vals);}
+        a.oninput=()=>{_showSuggest('modalActividadSuggest',a,acts,()=>{refreshL(); l.focus();});refreshL();};
+        a.onfocus=()=>{_showSuggest('modalActividadSuggest',a,acts,refreshL);};
+        l.oninput=()=>{const vals=_uniq(rowsA().map(x=>x.desc_labor||x.cod_labor)); _showSuggest('modalLaborSuggest',l,vals,()=>{refreshC(); c&&c.focus();}); refreshC();};
+        l.onfocus=()=>{const vals=_uniq(rowsA().map(x=>x.desc_labor||x.cod_labor)); _showSuggest('modalLaborSuggest',l,vals,refreshC);};
+        if(c){c.oninput=refreshC; c.onfocus=refreshC;}
         refreshL();
       }
       function abrirEditarTareo(){alert('Para modificar horarios/campos, usa el botón Registrar trabajador y vuelve a guardar el DNI con los datos corregidos.');}
@@ -530,6 +546,70 @@ def detalle_hoja(hoja_id):
         let drag=false; face.addEventListener('pointerdown',e=>{drag=true;face.setPointerCapture&&face.setPointerCapture(e.pointerId);update(e);}); face.addEventListener('pointermove',e=>{if(drag)update(e);}); face.addEventListener('pointerup',()=>drag=false); face.addEventListener('pointercancel',()=>drag=false);
       }
       const _oldOpenClock=abrirRelojPara; abrirRelojPara=function(inp){activeTimeInput=inp; _oldOpenClock(inp); setTimeout(bindClockV8,180);};
+
+
+      // Detección robusta v9: funciona con digitación, lector USB, QR y pegado.
+      let _dniDetectTimer=null, _dniDetectBusy=false;
+      async function autoDetectarDniInline(el){
+        const inp = el || document.getElementById('dniTrab');
+        const st = document.getElementById('dniStatus');
+        if(!inp) return;
+        const dni = limpiarDni(inp.value);
+        if(dni.length < 8){
+          if(st){st.className='mt-2 field-help'; st.textContent='Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.';}
+          return;
+        }
+        inp.value = dni;
+        clearTimeout(_dniDetectTimer);
+        _dniDetectTimer = setTimeout(()=>detectarDniTrabV9(dni), 60);
+      }
+      async function detectarDniTrabV9(dni){
+        const inp=document.getElementById('dniTrab'), st=document.getElementById('dniStatus');
+        if(!dni) dni=limpiarDni(inp && inp.value);
+        if(!inp || !st || dni.length!==8 || _dniDetectBusy) return;
+        _dniDetectBusy=true;
+        st.className='scan-ok mt-2';
+        st.innerHTML='Buscando DNI <b>'+dni+'</b>...';
+        try{
+          const r=await fetch('/api/trabajador/'+encodeURIComponent(dni), {cache:'no-store', credentials:'same-origin'});
+          const j=await r.json();
+          if(!j.ok){
+            st.className='scan-bad mt-2';
+            st.innerHTML='✕ '+(j.msg||'DNI no encontrado')+' <b>'+dni+'</b>';
+            try{beep();}catch(e){}
+            inp.select();
+            return;
+          }
+          const nombre=(j.trabajador && (j.trabajador.trabajador||j.trabajador.nombres)) || 'TRABAJADOR';
+          if(workerMap.has(dni)){
+            st.className='scan-ok mt-2';
+            st.innerHTML='✓ DNI ya estaba en pre-registro: <b>'+dni+'</b>';
+          }else{
+            workerMap.set(dni, nombre);
+            renderQueue();
+            st.className='scan-ok mt-2';
+            st.innerHTML='✓ Trabajador agregado: <b>'+nombre+'</b> · '+dni;
+          }
+          try{beep();}catch(e){}
+          setTimeout(()=>{inp.value=''; inp.focus();},180);
+        }catch(err){
+          st.className='scan-bad mt-2';
+          st.textContent='Error consultando trabajador. Revisa conexión o sesión.';
+        }finally{
+          setTimeout(()=>{_dniDetectBusy=false;},120);
+        }
+      }
+      // Re-enlaza también al abrir el modal, por si Bootstrap recrea foco/eventos.
+      document.addEventListener('shown.bs.modal', function(e){
+        if(e.target && e.target.id==='modalRegistro'){
+          bindDniAuto();
+          const inp=document.getElementById('dniTrab'); if(inp){inp.focus(); autoDetectarDniInline(inp);}
+        }
+        if(e.target && e.target.id==='modalLabor'){
+          bindModalMaestros();
+          setTimeout(()=>{const a=document.getElementById('modalActividad'); if(a) a.focus();},80);
+        }
+      });
 
       document.addEventListener('DOMContentLoaded',()=>{bindClock();bindClockV7();bindClockV8();bindDniAuto();bindModalMaestros();});
     </script>
