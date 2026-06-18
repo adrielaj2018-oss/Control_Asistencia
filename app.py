@@ -110,6 +110,9 @@ def init_db():
     cur.execute(qmark(f"""CREATE TABLE IF NOT EXISTS hoja_labores(
         id {idtype}, hoja_id INTEGER NOT NULL, grupo TEXT, subgrupo TEXT, labor TEXT,
         turno TEXT DEFAULT 'DIA', tipo_tareo TEXT DEFAULT 'JORNAL', responsable TEXT, creado_en TEXT, creado_por TEXT)"""))
+    cur.execute(qmark(f"""CREATE TABLE IF NOT EXISTS actividades_maestras(
+        id {idtype}, cod_actividad TEXT, desc_actividad TEXT, cod_labor TEXT, desc_labor TEXT,
+        cod_consumidor TEXT, desc_consumidor TEXT, estado TEXT DEFAULT 'ACTIVO', fecha_carga TEXT)"""))
     cur.execute(qmark(f"""CREATE TABLE IF NOT EXISTS lecturas_balde(
         id {idtype}, hoja_id INTEGER, labor_id INTEGER, dni TEXT, trabajador TEXT, fecha_hora TEXT,
         a_diurno REAL DEFAULT 0, a_noct REAL DEFAULT 0, metodo TEXT, registrado_por TEXT)"""))
@@ -181,7 +184,7 @@ BASE_HTML = r"""
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
 :root{--verde:#2f773b;--verde2:#3f8748;--verde3:#276a33;--verdeClaro:#eaf5eb;--line:#e8ece8;--txt:#2d5b35;--gris:#6b7d6d;--amarillo:#ffc20e}
-*{box-sizing:border-box}body{margin:0;background:#fff;font-family:Inter,Segoe UI,Arial,sans-serif;color:#21472a}.app-bg{min-height:100vh;background:linear-gradient(180deg,#fff 0%,#fff 62%,#fbfbfb 100%)}.shell{width:min(1120px,100%);margin:0 auto;padding:18px}.phone-wrap{max-width:430px;margin:0 auto}.desktop-grid{display:grid;grid-template-columns:390px 1fr;gap:18px;align-items:start}.header-title{text-align:center;color:#166534;font-family:Georgia,serif;font-weight:900;letter-spacing:.5px;font-size:23px;line-height:1.13;margin:4px 0 22px;text-transform:uppercase}.green-hero{background:var(--verde);border-radius:0 0 18px 18px;min-height:145px;padding:12px 16px 22px;color:white;text-align:center;position:relative;overflow:visible}.green-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800}.avatar{width:78px;height:78px;border-radius:999px;background:white;color:var(--verde);display:grid;place-items:center;margin:10px auto 2px;font-size:43px;box-shadow:0 8px 20px rgba(0,0,0,.13)}.login-name{font-size:11px;font-weight:800}.white-input{height:36px;background:white;border-radius:10px;box-shadow:0 5px 13px rgba(0,0,0,.18);border:0}.floating-card{background:white;border-radius:10px;box-shadow:0 8px 18px rgba(0,0,0,.15);padding:12px}.tile{width:74px;height:70px;border-radius:8px;background:white;box-shadow:0 7px 17px rgba(0,0,0,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--verde);font-weight:900;font-size:10px;text-align:center}.tile i{font-size:26px;margin-bottom:5px}.bottom-sync{position:fixed;left:10px;bottom:8px;color:#317a3e;font-size:10px;font-weight:700}.bottom-out{position:fixed;right:14px;bottom:8px;color:#c84c4c;font-size:20px}.tab-main{display:flex;gap:0;background:#fafafa;padding-left:0;border-top:4px solid #d7d7d7}.tab-main a{flex:1;text-align:center;text-decoration:none;color:#508557;font-weight:900;font-size:13px;padding:14px 8px;border-radius:7px 7px 0 0;background:#fff}.tab-main a.active{background:var(--verde);color:white;box-shadow:0 3px 7px rgba(0,0,0,.18)}.subtabs{display:flex;background:#fff}.subtabs a{flex:1;text-align:center;padding:13px 5px;text-decoration:none;color:#4b8a54;font-weight:900;font-size:12px}.subtabs a.active{background:var(--verde);color:white}.panel-green{background:var(--verde);color:white;text-align:center;padding:21px 12px 42px}.panel-green i{font-size:38px}.panel-green h4{font-size:11px;font-weight:900;margin:5px 0 0}.toolstrip{background:white;margin:-25px 9px 5px;border-radius:9px;min-height:49px;box-shadow:0 5px 13px rgba(0,0,0,.22);display:flex;align-items:center;gap:20px;padding:7px 14px;color:var(--verde);font-size:24px}.toolstrip button,.toolstrip a{border:0;background:transparent;color:var(--verde);font-size:24px;text-decoration:none}.info-bar{margin:0 9px;background:var(--verde);color:white;border-radius:2px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 22px;align-items:center;font-size:10px;font-weight:900;height:23px}.info-bar div{text-align:center;border-right:1px solid rgba(255,255,255,.28)}.worker-card{background:white;margin:10px 12px;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,.20);padding:11px 13px;color:#397443;position:relative}.worker-title{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:9px;font-weight:900;text-transform:uppercase}.worker-title b{font-size:10px;color:var(--verde)}.worker-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:7px}.worker-grid label{font-size:8px;font-weight:900;color:#6c8a6f;margin-bottom:1px}.mini-input{height:25px;border:1px solid #9ebaa0;border-radius:3px;font-size:10px;padding:3px 5px;width:100%;font-weight:800;color:#315f39}.mini-badge{border-radius:3px;color:white;font-size:8px;font-weight:900;text-align:center;padding:4px 3px;text-transform:uppercase}.bg-y{background:var(--amarillo)!important;color:white}.bg-g{background:#42b852!important}.person-dot{width:42px;height:42px;border-radius:999px;background:#378145;color:white;display:grid;place-items:center;font-size:26px;float:left;margin-right:9px}.small-label{font-size:8px;color:#79937b;font-weight:900}.small-value{font-size:9px;color:#466a49;font-weight:900}.leaf{width:120px;height:120px;border-radius:70% 30% 70% 30%;background:linear-gradient(135deg,#ffd8bd,#eef4c7,#cbd9b6);opacity:.72;margin:20px auto 0;transform:rotate(-20deg)}.card-pro{background:white;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 20px rgba(0,0,0,.10)}.btn-green{background:var(--verde);border-color:var(--verde);color:white;font-weight:900;border-radius:9px}.btn-green:hover{background:var(--verde3);color:white}.form-control,.form-select{border-radius:9px;border:1px solid #dfe7df;font-weight:700;font-size:13px}.form-label{font-size:12px;font-weight:900;color:#3e7545}.page-card{border-radius:13px;overflow:hidden;border:1px solid #e5e7e5;background:white}.list-table th{font-size:11px;color:#497550}.list-table td{font-size:12px;vertical-align:middle}.status-pill{display:inline-block;background:#39b54a;color:white;border-radius:4px;padding:4px 8px;font-size:9px;font-weight:900}.top-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px;position:relative;z-index:5}.top-actions .tile{width:82px;height:76px}.login-page .shell{padding:0}.login-form{margin:-7px auto 0;width:92%;max-width:360px}.login-form .floating-card{padding:13px 14px 18px}.alert{border-radius:12px;font-size:13px}.desk-panel{display:block}.mobile-only{display:none}.clock-box{width:116px;height:116px;border:5px solid var(--verde);border-radius:999px;margin:8px auto;display:grid;place-items:center;color:var(--verde);font-weight:900;background:#fff;box-shadow:0 4px 14px rgba(47,119,59,.18)}.clock-box i{font-size:38px}.scan-box{border:2px dashed #8dbf93;border-radius:12px;padding:10px;background:#f8fff9}.toolstrip .hint{font-size:9px;font-weight:900;color:#2f773b;margin-left:-18px;margin-right:0}.splash-card{height:94vh;max-height:760px;background:#23773f;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;position:relative}.splash-logo{width:145px;height:145px;border-radius:999px;background:#fff;border:6px solid #92bd33;display:grid;place-items:center;color:#23773f;font-size:66px;box-shadow:0 3px 10px rgba(0,0,0,.22)}.splash-title{font-weight:900;margin-top:18px;letter-spacing:.5px}.splash-foot{position:absolute;bottom:26px;text-align:center;font-size:11px;color:#d9f2df;font-weight:700}.role-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}.role-toggle label{border:1px solid #dce7dc;border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:900;color:#2f773b}.role-toggle input{display:none}.role-toggle input:checked+span{background:#2f773b;color:white;border-radius:7px;padding:7px 9px;display:block}.bottom-nav{position:sticky;bottom:0;background:white;border-top:1px solid #e8ece8;display:flex;justify-content:space-around;padding:7px 0;color:#477b4d;font-size:10px;font-weight:800}.bottom-nav a{text-decoration:none;color:#477b4d;text-align:center}.bottom-nav i{display:block;font-size:17px}.copy-list{max-height:260px;overflow:auto;border:1px solid #e5ede5;border-radius:9px;padding:8px;background:#fbfffb}.clock-face{width:180px;height:180px;border-radius:999px;background:#e7e0ef;margin:8px auto;position:relative;display:grid;place-items:center;color:#5d44aa}.clock-hand{width:65px;height:3px;background:#6b4eb8;position:absolute;transform-origin:left center;transform:rotate(-35deg);left:90px;top:90px}.clock-dot{width:12px;height:12px;border-radius:999px;background:#6b4eb8;position:absolute;left:84px;top:84px}.clock-num{position:absolute;font-size:12px;color:#37303c}.clock-bubble{position:absolute;right:20px;top:50px;background:#6b4eb8;color:white;border-radius:999px;padding:9px;font-weight:900}.field-required{box-shadow:inset 4px 0 0 var(--verde)}
+*{box-sizing:border-box}body{margin:0;background:#fff;font-family:Inter,Segoe UI,Arial,sans-serif;color:#21472a}.app-bg{min-height:100vh;background:linear-gradient(180deg,#fff 0%,#fff 62%,#fbfbfb 100%)}.shell{width:min(1120px,100%);margin:0 auto;padding:18px}.phone-wrap{max-width:430px;margin:0 auto}.desktop-grid{display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start}.home-desktop-list .worker-card{margin:10px 0}.home-desktop-list{max-width:640px;margin:0 auto}.header-title{text-align:center;color:#166534;font-family:Georgia,serif;font-weight:900;letter-spacing:.5px;font-size:23px;line-height:1.13;margin:4px 0 22px;text-transform:uppercase}.green-hero{background:var(--verde);border-radius:0 0 18px 18px;min-height:145px;padding:12px 16px 22px;color:white;text-align:center;position:relative;overflow:visible}.tareo-hero{min-height:124px!important;padding-bottom:42px!important}.tareo-toolbar{margin:12px 12px 8px!important;position:relative;z-index:4}.tareo-list-page .worker-card:first-of-type{margin-top:12px}.back-mini{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:999px;color:var(--verde);text-decoration:none;font-size:24px}.green-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800}.avatar{width:78px;height:78px;border-radius:999px;background:white;color:var(--verde);display:grid;place-items:center;margin:10px auto 2px;font-size:43px;box-shadow:0 8px 20px rgba(0,0,0,.13)}.login-name{font-size:11px;font-weight:800}.white-input{height:36px;background:white;border-radius:10px;box-shadow:0 5px 13px rgba(0,0,0,.18);border:0}.floating-card{background:white;border-radius:10px;box-shadow:0 8px 18px rgba(0,0,0,.15);padding:12px}.tile{width:74px;height:70px;border-radius:8px;background:white;box-shadow:0 7px 17px rgba(0,0,0,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--verde);font-weight:900;font-size:10px;text-align:center}.tile i{font-size:26px;margin-bottom:5px}.bottom-sync{position:fixed;left:10px;bottom:8px;color:#317a3e;font-size:10px;font-weight:700}.bottom-out{position:fixed;right:14px;bottom:8px;color:#c84c4c;font-size:20px}.tab-main{display:flex;gap:0;background:#fafafa;padding-left:0;border-top:4px solid #d7d7d7}.tab-main a{flex:1;text-align:center;text-decoration:none;color:#508557;font-weight:900;font-size:13px;padding:14px 8px;border-radius:7px 7px 0 0;background:#fff}.tab-main a.active{background:var(--verde);color:white;box-shadow:0 3px 7px rgba(0,0,0,.18)}.subtabs{display:flex;background:#fff}.subtabs a{flex:1;text-align:center;padding:13px 5px;text-decoration:none;color:#4b8a54;font-weight:900;font-size:12px}.subtabs a.active{background:var(--verde);color:white}.panel-green{background:var(--verde);color:white;text-align:center;padding:21px 12px 42px}.panel-green i{font-size:38px}.panel-green h4{font-size:11px;font-weight:900;margin:5px 0 0}.toolstrip{background:white;margin:-25px 9px 5px;border-radius:9px;min-height:49px;box-shadow:0 5px 13px rgba(0,0,0,.22);display:flex;align-items:center;gap:20px;padding:7px 14px;color:var(--verde);font-size:24px}.toolstrip button,.toolstrip a{border:0;background:transparent;color:var(--verde);font-size:24px;text-decoration:none}.info-bar{margin:0 9px;background:var(--verde);color:white;border-radius:2px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 22px;align-items:center;font-size:10px;font-weight:900;height:23px}.info-bar div{text-align:center;border-right:1px solid rgba(255,255,255,.28)}.worker-card{background:white;margin:10px 12px;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,.20);padding:11px 13px;color:#397443;position:relative}.worker-title{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:9px;font-weight:900;text-transform:uppercase}.worker-title b{font-size:10px;color:var(--verde)}.worker-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:7px}.worker-grid label{font-size:8px;font-weight:900;color:#6c8a6f;margin-bottom:1px}.mini-input{height:25px;border:1px solid #9ebaa0;border-radius:3px;font-size:10px;padding:3px 5px;width:100%;font-weight:800;color:#315f39}.mini-badge{border-radius:3px;color:white;font-size:8px;font-weight:900;text-align:center;padding:4px 3px;text-transform:uppercase}.bg-y{background:var(--amarillo)!important;color:white}.bg-g{background:#42b852!important}.person-dot{width:42px;height:42px;border-radius:999px;background:#378145;color:white;display:grid;place-items:center;font-size:26px;float:left;margin-right:9px}.small-label{font-size:8px;color:#79937b;font-weight:900}.small-value{font-size:9px;color:#466a49;font-weight:900}.leaf{width:120px;height:120px;border-radius:70% 30% 70% 30%;background:linear-gradient(135deg,#ffd8bd,#eef4c7,#cbd9b6);opacity:.72;margin:20px auto 0;transform:rotate(-20deg)}.card-pro{background:white;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 20px rgba(0,0,0,.10)}.btn-green{background:var(--verde);border-color:var(--verde);color:white;font-weight:900;border-radius:9px}.btn-green:hover{background:var(--verde3);color:white}.form-control,.form-select{border-radius:9px;border:1px solid #dfe7df;font-weight:700;font-size:13px}.form-label{font-size:12px;font-weight:900;color:#3e7545}.page-card{border-radius:13px;overflow:hidden;border:1px solid #e5e7e5;background:white}.list-table th{font-size:11px;color:#497550}.list-table td{font-size:12px;vertical-align:middle}.status-pill{display:inline-block;background:#39b54a;color:white;border-radius:4px;padding:4px 8px;font-size:9px;font-weight:900}.top-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px;position:relative;z-index:5}.top-actions .tile{width:82px;height:76px}.login-page .shell{padding:0}.login-form{margin:-7px auto 0;width:92%;max-width:360px}.login-form .floating-card{padding:13px 14px 18px}.alert{border-radius:12px;font-size:13px}.desk-panel{display:block}.mobile-only{display:none}.clock-box{width:116px;height:116px;border:5px solid var(--verde);border-radius:999px;margin:8px auto;display:grid;place-items:center;color:var(--verde);font-weight:900;background:#fff;box-shadow:0 4px 14px rgba(47,119,59,.18)}.clock-box i{font-size:38px}.scan-box{border:2px dashed #8dbf93;border-radius:12px;padding:10px;background:#f8fff9}.toolstrip .hint{font-size:9px;font-weight:900;color:#2f773b;margin-left:-18px;margin-right:0}.splash-card{height:94vh;max-height:760px;background:#23773f;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;position:relative}.splash-logo{width:145px;height:145px;border-radius:999px;background:#fff;border:6px solid #92bd33;display:grid;place-items:center;color:#23773f;font-size:66px;box-shadow:0 3px 10px rgba(0,0,0,.22)}.splash-title{font-weight:900;margin-top:18px;letter-spacing:.5px}.splash-foot{position:absolute;bottom:26px;text-align:center;font-size:11px;color:#d9f2df;font-weight:700}.role-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}.role-toggle label{border:1px solid #dce7dc;border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:900;color:#2f773b}.role-toggle input{display:none}.role-toggle input:checked+span{background:#2f773b;color:white;border-radius:7px;padding:7px 9px;display:block}.bottom-nav{position:sticky;bottom:0;background:white;border-top:1px solid #e8ece8;display:flex;justify-content:space-around;padding:7px 0;color:#477b4d;font-size:10px;font-weight:800}.bottom-nav a{text-decoration:none;color:#477b4d;text-align:center}.bottom-nav i{display:block;font-size:17px}.copy-list{max-height:260px;overflow:auto;border:1px solid #e5ede5;border-radius:9px;padding:8px;background:#fbfffb}.clock-face{width:180px;height:180px;border-radius:999px;background:#e7e0ef;margin:8px auto;position:relative;display:grid;place-items:center;color:#5d44aa;touch-action:none;cursor:pointer;user-select:none}.clock-hand{width:65px;height:3px;background:#6b4eb8;position:absolute;transform-origin:left center;transform:rotate(-35deg);left:90px;top:90px}.clock-dot{width:12px;height:12px;border-radius:999px;background:#6b4eb8;position:absolute;left:84px;top:84px}.clock-num{position:absolute;font-size:12px;color:#37303c}.clock-bubble{position:absolute;right:20px;top:50px;background:#6b4eb8;color:white;border-radius:999px;padding:9px;font-weight:900}.field-required{box-shadow:inset 4px 0 0 var(--verde)}
 @media(max-width:860px){.shell{padding:0}.desktop-grid{display:block}.desk-panel{display:none}.mobile-only{display:block}.header-title{font-size:17px;margin:16px 7px 20px}.page-card{border-radius:0;border-left:0;border-right:0}.phone-wrap{max-width:100%}.green-hero{border-radius:0}.worker-card{margin-left:9px;margin-right:9px}.toolstrip{gap:15px}.info-bar{font-size:8.5px}.bottom-sync,.bottom-out{position:fixed}.desktop-pad{padding:0 0 28px}.tab-main a,.subtabs a{font-size:11px}.worker-grid{gap:5px}.floating-card{border-radius:9px}.top-actions .tile{width:72px;height:70px}}
 </style></head><body class="{{ 'login-page' if not session.get('usuario') else '' }}"><div class="app-bg"><main class="shell">
 {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="phone-wrap mt-2">{% for cat,msg in messages %}<div class="alert alert-{{cat}} shadow-sm">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
@@ -194,6 +197,18 @@ BASE_HTML = r"""
 def render_page(body, title="Tareo Móvil", **ctx):
     return render_template_string(BASE_HTML, body=render_template_string(body, **ctx), title=title)
 
+
+def get_actividades_maestras(limit=5000):
+    try:
+        rows = rows_to_dict(execute("SELECT * FROM actividades_maestras WHERE COALESCE(estado,'ACTIVO')='ACTIVO' ORDER BY desc_actividad, desc_labor, desc_consumidor LIMIT ?", (limit,), fetchall=True))
+    except Exception:
+        rows = []
+    return rows
+
+def js_master_options(rows):
+    import json
+    return json.dumps(rows, ensure_ascii=False)
+
 # ========================= AUTH + HOME =========================
 
 @app.route('/inicio')
@@ -203,7 +218,7 @@ def inicio():
       <div class="splash-logo"><i class="bi bi-clipboard2-data"></i></div>
       <div class="splash-title">TAREO MOVIL</div>
       <a class="btn btn-light btn-sm mt-4 fw-bold text-success" href="{{url_for('login')}}">ENTRAR</a>
-      <div class="splash-foot">Nisira Systems S.A.C.<br>v.3.2.15</div>
+      <div class="splash-foot">Nisira Systems S.A.C.<br>v.1.0</div>
     </div></div>"""
     return render_page(body, title='Tareo Móvil')
 
@@ -248,14 +263,15 @@ def logout():
     session.clear(); return redirect(url_for('login'))
 
 @app.route('/')
-@login_required
 def home():
+    if not session.get('usuario'):
+        return redirect(url_for('inicio'))
     hojas = rows_to_dict(execute('SELECT * FROM hojas_tareo ORDER BY fecha DESC, id DESC LIMIT 8', fetchall=True))
     body = """
     <div class="desktop-grid">
       <div class="phone-wrap">
         <div class="green-hero" style="min-height:220px">
-          <div class="green-top"><a class="text-white text-decoration-none" href="{{url_for('soporte')}}"><i class="bi bi-headset"></i> Soporte</a><a class="text-white text-decoration-none" href="{{url_for('configuraciones')}}"><i class="bi bi-gear"></i> Config.</a></div>
+          <div class="green-top"><a class="text-white text-decoration-none" href="{{url_for('soporte')}}"><i class="bi bi-headset"></i> Soporte</a>{% if session.get('rol')=='admin' %}<a class="text-white text-decoration-none" href="{{url_for('configuraciones')}}"><i class="bi bi-gear"></i> Config.</a>{% else %}<span></span>{% endif %}</div>
           <div class="avatar"><i class="bi bi-person-circle"></i></div><div class="login-name">{{ session.get('nombres','USUARIO') }}</div>
           <div class="white-input mt-3"></div>
         </div>
@@ -281,14 +297,14 @@ def home():
 def hojas_tareo():
     hojas = rows_to_dict(execute('SELECT * FROM hojas_tareo ORDER BY fecha DESC, id DESC LIMIT 50', fetchall=True))
     body = """
-    <div class="phone-wrap desktop-pad">
+    <div class="phone-wrap desktop-pad tareo-list-page">
       <div class="page-card">
-        <div class="green-hero" style="min-height:150px;border-radius:0 0 12px 12px">
-          <div class="green-top"><span>v.3.2.15</span><a class="text-white text-decoration-none" href="{{url_for('home')}}"><i class="bi bi-house"></i></a></div>
+        <div class="green-hero tareo-hero" style="border-radius:0 0 12px 12px">
+          <div class="green-top"><span>v.1.0</span><a class="text-white text-decoration-none" href="{{url_for('home')}}"><i class="bi bi-house"></i></a></div>
           <i class="bi bi-list-check" style="font-size:34px;margin-top:14px"></i><div class="login-name mt-1">TAREOS</div>
         </div>
-        <div class="toolstrip" style="margin-top:-26px">
-          <a title="Crear hoja" href="{{url_for('crear_hoja')}}"><i class="bi bi-list-check"></i></a>
+        <div class="toolstrip tareo-toolbar">
+          <a title="Crear hoja" href="{{url_for('crear_hoja')}}"><i class="bi bi-list-task"></i><i class="bi bi-plus" style="font-size:16px;margin-left:-10px"></i></a>
           <a title="Plantilla Excel" href="{{url_for('plantilla_trabajadores')}}"><i class="bi bi-file-earmark-excel"></i></a>
           <a title="Sincronizar" href="{{url_for('sincronizacion')}}"><i class="bi bi-arrow-clockwise"></i></a>
         </div>
@@ -312,16 +328,16 @@ def hojas_tareo():
 def crear_hoja():
     if request.method == 'POST':
         fecha = request.form.get('fecha') or today_str()
-        grupo = limpiar_texto(request.form.get('grupo'))
-        subgrupo = limpiar_texto(request.form.get('subgrupo'))
-        labor = limpiar_texto(request.form.get('labor'))
+        grupo = limpiar_texto(request.form.get('actividad') or request.form.get('grupo'))
+        subgrupo = limpiar_texto(request.form.get('labor') or request.form.get('subgrupo'))
+        labor = limpiar_texto(request.form.get('consumidor') or request.form.get('consumidor_desc') or request.form.get('labor_consumidor') or '')
         responsable = limpiar_texto(request.form.get('responsable'))
         turno = limpiar_texto(request.form.get('turno') or 'DIA')
         tipo_tareo = limpiar_texto(request.form.get('tipo_tareo') or 'JORNAL')
         if turno not in ('DIA','NOCHE'): turno = 'DIA'
         if tipo_tareo not in ('JORNAL','RENDIMIENTO'): tipo_tareo = 'JORNAL'
-        if not grupo or not labor or not responsable:
-            flash('Completa grupo, labor y responsable.', 'danger')
+        if not grupo or not subgrupo or not responsable:
+            flash('Debe seleccionar Actividad y Labor, además de responsable.', 'danger')
             return redirect(url_for('crear_hoja'))
         execute('INSERT INTO hojas_tareo(fecha,grupo,subgrupo,labor,responsable,turno,tipo_tareo,estado,creado_por,creado_en) VALUES(?,?,?,?,?,?,?,?,?,?)',
                 (fecha,grupo,subgrupo,labor,responsable,turno,tipo_tareo,'ABIERTA',session.get('usuario'),now_str()), commit=True)
@@ -329,19 +345,30 @@ def crear_hoja():
         execute('INSERT INTO hoja_labores(hoja_id,grupo,subgrupo,labor,turno,tipo_tareo,responsable,creado_en,creado_por) VALUES(?,?,?,?,?,?,?,?,?)',
                 (hid,grupo,subgrupo,labor,turno,tipo_tareo,responsable,now_str(),session.get('usuario')), commit=True)
         return redirect(url_for('detalle_hoja', hoja_id=hid))
+    maestros = get_actividades_maestras()
     body = """
     <div class="phone-wrap desktop-pad"><h2 class="header-title">CREAR HOJA DE TAREO</h2><div class="page-card">
-      <div class="panel-green"><i class="bi bi-clipboard2-plus"></i><h4>NUEVA HOJA – FECHA, GRUPO, SUBGRUPO, LABOR, RESPONSABLE, TURNO Y TIPO</h4></div>
+      <div class="panel-green"><i class="bi bi-clipboard2-plus"></i><h4>NUEVA HOJA – FECHA, ACTIVIDAD, LABOR, CONSUMIDOR, RESPONSABLE, TURNO Y TIPO</h4></div>
       <form method="post" class="floating-card" style="margin:-24px 10px 12px">
         <label class="form-label">FECHA</label><input type="date" name="fecha" class="form-control mb-2 field-required" value="{{today}}" required>
-        <label class="form-label">GRUPO</label><input name="grupo" class="form-control mb-2 field-required" list="grupos" placeholder="GRUPO COSECHA" required><datalist id="grupos"><option>GRUPO COSECHA</option><option>GRUPO CAMPO</option><option>GRUPO EMPAQUE</option></datalist>
-        <label class="form-label">SUBGRUPO</label><input name="subgrupo" class="form-control mb-2" placeholder="SUBGRUPO / CUADRILLA">
-        <label class="form-label">LABOR</label><input name="labor" class="form-control mb-2 field-required" list="labores" placeholder="COSECHA" required><datalist id="labores"><option>COSECHA</option><option>RALEO</option><option>PODA</option><option>LIMPIEZA</option></datalist>
+        <label class="form-label">ACTIVIDAD</label><input id="actividadInput" name="actividad" class="form-control mb-2 field-required" list="actividad_list" placeholder="Digite primeras letras de la actividad" required autocomplete="off"><datalist id="actividad_list"></datalist>
+        <label class="form-label">LABOR</label><input id="laborInput" name="labor" class="form-control mb-2 field-required" list="labor_list" placeholder="Seleccione labor según actividad" required autocomplete="off"><datalist id="labor_list"></datalist>
+        <label class="form-label">CONSUMIDOR <span class="text-muted">(opcional)</span></label><input id="consumidorInput" name="consumidor" class="form-control mb-2" list="consumidor_list" placeholder="Consumidor / zona / campo"><datalist id="consumidor_list"></datalist>
         <label class="form-label">RESPONSABLE</label><input name="responsable" class="form-control mb-2 field-required" placeholder="APELLIDOS Y NOMBRES" required>
         <div class="row g-2 mb-3"><div class="col-6"><label class="form-label">TURNO</label><select name="turno" class="form-select field-required"><option>DIA</option><option>NOCHE</option></select></div><div class="col-6"><label class="form-label">TIPO</label><select name="tipo_tareo" class="form-select field-required"><option>JORNAL</option><option>RENDIMIENTO</option></select></div></div>
         <button class="btn btn-green w-100"><i class="bi bi-check-circle"></i> CREAR Y ENTRAR</button><a class="btn btn-outline-secondary w-100 mt-2" href="{{url_for('hojas_tareo')}}">VOLVER</a>
-      </form></div></div>"""
-    return render_page(body, today=today_str())
+      </form></div></div>
+      <script>
+        const MAESTROS={{ maestros_json|safe }};
+        const uniq=a=>[...new Set(a.filter(Boolean))].sort();
+        function fillList(id, arr){const dl=document.getElementById(id); dl.innerHTML=''; arr.slice(0,300).forEach(v=>{const o=document.createElement('option'); o.value=v; dl.appendChild(o);});}
+        function refreshActividad(){fillList('actividad_list', uniq(MAESTROS.map(x=>x.desc_actividad || x.cod_actividad)));}
+        function refreshLabor(){const a=(actividadInput.value||'').toUpperCase(); const rows=MAESTROS.filter(x=>!a || String(x.desc_actividad||'').toUpperCase()===a || String(x.cod_actividad||'').toUpperCase()===a || String(x.desc_actividad||'').toUpperCase().includes(a)); fillList('labor_list', uniq(rows.map(x=>x.desc_labor || x.cod_labor))); refreshConsumidor();}
+        function refreshConsumidor(){const a=(actividadInput.value||'').toUpperCase(), l=(laborInput.value||'').toUpperCase(); const rows=MAESTROS.filter(x=>(!a || String(x.desc_actividad||'').toUpperCase().includes(a)||String(x.cod_actividad||'').toUpperCase().includes(a)) && (!l || String(x.desc_labor||'').toUpperCase().includes(l)||String(x.cod_labor||'').toUpperCase().includes(l))); fillList('consumidor_list', uniq(rows.map(x=>x.desc_consumidor || x.cod_consumidor)));}
+        actividadInput.addEventListener('input', refreshLabor); laborInput.addEventListener('input', refreshConsumidor); document.addEventListener('DOMContentLoaded',()=>{refreshActividad();refreshLabor();});
+      </script>
+    """
+    return render_page(body, today=today_str(), maestros_json=js_master_options(maestros))
 
 @app.route('/hoja/<int:hoja_id>')
 @login_required
@@ -351,10 +378,6 @@ def detalle_hoja(hoja_id):
     if not h:
         flash('Hoja no encontrada.', 'danger'); return redirect(url_for('hojas_tareo'))
     labores = rows_to_dict(execute('SELECT * FROM hoja_labores WHERE hoja_id=? ORDER BY id DESC', (hoja_id,), fetchall=True))
-    if not labores:
-        execute('INSERT INTO hoja_labores(hoja_id,grupo,subgrupo,labor,turno,tipo_tareo,responsable,creado_en,creado_por) VALUES(?,?,?,?,?,?,?,?,?)',
-                (hoja_id,h.get('grupo'),h.get('subgrupo'),h.get('labor'),h.get('turno') or 'DIA',h.get('tipo_tareo') or 'JORNAL',h.get('responsable'),now_str(),session.get('usuario')), commit=True)
-        labores = rows_to_dict(execute('SELECT * FROM hoja_labores WHERE hoja_id=? ORDER BY id DESC', (hoja_id,), fetchall=True))
     tareos = rows_to_dict(execute('SELECT * FROM tareos WHERE hoja_id=? ORDER BY creado_en DESC LIMIT 100', (hoja_id,), fetchall=True))
     lecturas = rows_to_dict(execute('SELECT * FROM lecturas_balde WHERE hoja_id=? ORDER BY fecha_hora DESC LIMIT 100', (hoja_id,), fetchall=True))
     registros = len(tareos); horas_total = sum(float(x.get('horas') or 0) for x in tareos); rend_total = sum(float(x.get('cantidad') or 0) for x in tareos)
@@ -364,7 +387,7 @@ def detalle_hoja(hoja_id):
       <div class="page-card">
         <div class="tab-main"><a class="{{'active' if tab=='labores' else ''}}" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='labores')}}">LABORES</a><a class="{{'active' if tab=='trabajadores' else ''}}" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='trabajadores')}}">TRABAJADORES</a><a class="{{'active' if tab=='rendimiento' else ''}}" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='rendimiento')}}">REND./AVANCE</a></div>
         <div class="subtabs"><a class="{{'active' if tab=='labores' else ''}}" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='labores')}}">Labores</a><a class="{{'active' if tab=='trabajadores' else ''}}" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='trabajadores')}}">Trab.por Labor</a><a class="{{'active' if tab=='rendimiento' else ''}}" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='rendimiento')}}">Rend/Avance por Labor</a></div>
-        <div class="panel-green"><i class="bi {{ 'bi-people-fill' if tab=='trabajadores' else ('bi-person-badge' if tab=='rendimiento' else 'bi-people') }}"></i><h4>{{ 'TRABAJADORES – QR / CÓDIGO BARRAS / DIGITACIÓN' if tab=='trabajadores' else ('PRODUCTIVIDAD POR TRABAJADOR – BALDE / QR / DIGITACIÓN' if tab=='rendimiento' else 'REGISTRO DE GRUPO, SUBGRUPO, LABOR, TURNO Y TIPO') }}</h4></div>
+        <div class="panel-green"><i class="bi {{ 'bi-people-fill' if tab=='trabajadores' else ('bi-person-badge' if tab=='rendimiento' else 'bi-people') }}"></i><h4>{{ 'TRABAJADORES – QR / CÓDIGO BARRAS / DIGITACIÓN' if tab=='trabajadores' else ('PRODUCTIVIDAD POR TRABAJADOR – BALDE / QR / DIGITACIÓN' if tab=='rendimiento' else 'REGISTRO DE ACTIVIDAD, LABOR, CONSUMIDOR, TURNO Y TIPO') }}</h4></div>
         <div class="toolstrip">
           <button title="Crear labor/grupo/subgrupo" data-bs-toggle="modal" data-bs-target="#modalLabor"><i class="bi bi-list-check"></i></button>
           <button title="Buscar trabajador" data-bs-toggle="modal" data-bs-target="#modalBuscar"><i class="bi bi-search"></i></button>
@@ -383,7 +406,7 @@ def detalle_hoja(hoja_id):
         </div>
         <div class="info-bar"><div><i class="bi bi-calendar"></i> {{h.fecha}}</div><div><i class="bi bi-list"></i> {{registros}} Reg.</div><div><i class="bi bi-clock"></i> {{'%.2f'|format(horas_total)}} H.</div><div>A.Rend {{'%.2f'|format(rend_total)}}</div><span>⌄</span></div>
         {% if tab=='labores' %}
-          {% for l in labores %}<div class="worker-card"><div class="worker-title"><div>GRUPO<br><b>{{l.grupo}}</b></div><div class="text-end">SUBGRUPO<br><b>{{l.subgrupo or 'SIN SUBGRUPO'}}</b></div></div><div class="mt-2"><span class="small-label">LABOR</span> <b>{{l.labor}}</b> &nbsp; <span class="small-label">RESPONSABLE</span> <b>{{l.responsable or h.responsable}}</b></div><div class="worker-grid mt-2"><div><div class="mini-badge {{'bg-y' if l.turno=='NOCHE' else 'bg-g'}}">{{l.turno}}</div></div><div><div class="mini-badge bg-y">{{l.tipo_tareo}}</div></div><div><div class="mini-badge bg-g">ACTIVA</div></div></div></div>{% else %}<div class="worker-card text-center text-muted">Presiona <b>+</b> para crear grupo, subgrupo y labor.</div>{% endfor %}
+          {% for l in labores %}<a class="text-decoration-none" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='trabajadores')}}"><div class="worker-card"><div class="worker-title"><div>ACTIVIDAD<br><b>{{l.grupo}}</b></div><div class="text-end">LABOR<br><b>{{l.subgrupo or 'SIN LABOR'}}</b></div></div><div class="mt-2"><span class="small-label">CONSUMIDOR</span> <b>{{l.labor or 'SIN CONSUMIDOR'}}</b> &nbsp; <span class="small-label">RESPONSABLE</span> <b>{{l.responsable or h.responsable}}</b></div><div class="worker-grid mt-2"><div><div class="mini-badge {{'bg-y' if l.turno=='NOCHE' else 'bg-g'}}">{{l.turno}}</div></div><div><div class="mini-badge bg-y">{{l.tipo_tareo}}</div></div><div><div class="mini-badge bg-g">ACTIVA</div></div></div></div></a>{% else %}<div class="worker-card text-center text-muted">Presiona <b>+</b> para crear actividad, labor y consumidor.</div>{% endfor %}
         {% elif tab=='trabajadores' %}
           {% for r in tareos %}<div class="worker-card"><div class="worker-title"><div>TRABAJADOR<br><b>{{r.trabajador}}</b></div><div>NRO.DOCUMENTO<br><b>{{r.dni}}</b></div></div><div class="worker-grid"><div><label>HORA INICIO</label><input class="mini-input" value="{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}"></div><div><label>HORA FIN</label><input class="mini-input" value="{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}"></div><div><label>H.NORMAL</label><input class="mini-input" value="{{'%.2f'|format(r.horas or 0)}}"></div><div><label>REF. INI</label><input class="mini-input" value="{{r.ref_inicio or '12:00'}}"></div><div><label>REF. FIN</label><input class="mini-input" value="{{r.ref_fin or '13:00'}}"></div><div><label>ESTADO</label><div class="mini-badge bg-g">FIN TOTAL</div></div></div></div>{% else %}<div class="worker-card text-center text-muted">Presiona el <b>hombresito +</b> para registrar trabajador por QR/código/digitación.</div>{% endfor %}
         {% else %}
@@ -392,7 +415,7 @@ def detalle_hoja(hoja_id):
       </div>
     </div>
 
-    <div class="modal fade" id="modalLabor" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_labor_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-plus-square"></i> Crear nueva labor</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-label">GRUPO</label><input name="grupo" class="form-control mb-2" value="{{h.grupo}}" required><label class="form-label">SUBGRUPO</label><input name="subgrupo" class="form-control mb-2" value="{{h.subgrupo}}"><label class="form-label">LABOR</label><input name="labor" class="form-control mb-2" value="{{h.labor}}" required><label class="form-label">RESPONSABLE</label><input name="responsable" class="form-control mb-2" value="{{h.responsable}}"><div class="row g-2"><div class="col-6"><label class="form-label">TURNO</label><select name="turno" class="form-select"><option>DIA</option><option>NOCHE</option></select></div><div class="col-6"><label class="form-label">TIPO</label><select name="tipo_tareo" class="form-select"><option>JORNAL</option><option>RENDIMIENTO</option></select></div></div></div><div class="modal-footer"><button class="btn btn-green w-100">CREAR LABOR</button></div></form></div></div></div>
+    <div class="modal fade" id="modalLabor" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_labor_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-plus-square"></i> Crear nueva labor</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-label">ACTIVIDAD</label><input name="grupo" class="form-control mb-2" value="{{h.grupo}}" required><label class="form-label">LABOR</label><input name="subgrupo" class="form-control mb-2" value="{{h.subgrupo}}" required><label class="form-label">CONSUMIDOR (opcional)</label><input name="labor" class="form-control mb-2" value="{{h.labor}}"><label class="form-label">RESPONSABLE</label><input name="responsable" class="form-control mb-2" value="{{h.responsable}}"><div class="row g-2"><div class="col-6"><label class="form-label">TURNO</label><select name="turno" class="form-select"><option>DIA</option><option>NOCHE</option></select></div><div class="col-6"><label class="form-label">TIPO</label><select name="tipo_tareo" class="form-select"><option>JORNAL</option><option>RENDIMIENTO</option></select></div></div></div><div class="modal-footer"><button class="btn btn-green w-100">CREAR LABOR</button></div></form></div></div></div>
     <div class="modal fade" id="modalCopiar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('copiar_labor_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-files"></i> Copiar labor existente</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small">Selecciona el documento/labor que deseas copiar. No se copiará nada hasta presionar <b>COPIAR SELECCIONADO</b>.</div><div class="copy-list">{% for l in labores %}<label class="d-block mb-2"><input type="radio" name="labor_id_origen" value="{{l.id}}" required> <b>{{l.labor}}</b><br><span class="small text-muted">{{l.grupo}} / {{l.subgrupo}} / {{l.turno}} / {{l.tipo_tareo}}</span></label>{% endfor %}</div><label class="form-label mt-2">Nuevo nombre de labor (opcional)</label><input name="labor_nueva" class="form-control" placeholder="Dejar vacío para copiar igual"></div><div class="modal-footer"><button class="btn btn-green w-100">COPIAR SELECCIONADO</button></div></form></div></div></div>
     <div class="modal fade" id="modalBuscar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-search"></i> Buscar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input id="buscarDni" class="form-control mb-2" placeholder="DNI / QR / código barras"><button class="btn btn-green w-100" onclick="buscarTrabajadorLibre()">BUSCAR</button><div id="buscarResultado" class="alert alert-light border mt-2">Esperando búsqueda.</div></div></div></div></div>
     <div class="modal fade" id="modalHora" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-clock"></i> Horarios de trabajo y refrigerio</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="clock-face"><span class="clock-num" style="top:8px;left:86px">0</span><span class="clock-num" style="top:25px;right:45px">5</span><span class="clock-bubble">10</span><span class="clock-num" style="top:88px;right:20px">15</span><span class="clock-num" style="bottom:45px;right:38px">20</span><span class="clock-num" style="bottom:18px;left:86px">30</span><span class="clock-num" style="bottom:45px;left:38px">35</span><span class="clock-num" style="top:88px;left:20px">40</span><span class="clock-num" style="top:55px;left:28px">50</span><span class="clock-num" style="top:28px;left:55px">55</span><span class="clock-hand"></span><span class="clock-dot"></span></div><div class="alert alert-success small"><b>Turno NOCHE:</b> recomendado 22:00 a 06:00. Puedes modificarlo según tu operación.</div><div class="row g-2"><div class="col-6"><label class="form-label">Inicio trabajo</label><input id="horaInicioDefault" type="time" class="form-control" value="06:30"></div><div class="col-6"><label class="form-label">Fin trabajo</label><input id="horaFinDefault" type="time" class="form-control" value="16:30"></div><div class="col-6"><label class="form-label">Inicio refrigerio</label><input id="refInicioDefault" type="time" class="form-control" value="12:00"></div><div class="col-6"><label class="form-label">Fin refrigerio</label><input id="refFinDefault" type="time" class="form-control" value="13:00"></div></div><button class="btn btn-green w-100 mt-3" data-bs-dismiss="modal">APLICAR AL REGISTRO</button></div></div></div></div>
@@ -402,7 +425,29 @@ def detalle_hoja(hoja_id):
       function limpiarDni(v){let raw=(v||'').toString();let m=raw.match(/(?:^|\D)(\d{8})(?:\D|$)/);let d=m?m[1]:raw.replace(/\D/g,'');return d.length>=8?d.slice(-8):d;}
       async function buscarTrabajadorLibre(){let dni=limpiarDni(document.getElementById('buscarDni').value);document.getElementById('buscarDni').value=dni;let box=document.getElementById('buscarResultado');if(dni.length!==8){box.className='alert alert-warning mt-2';box.innerText='Ingrese DNI válido de 8 dígitos.';return;}let r=await fetch('/api/trabajador/'+dni);let j=await r.json();if(!j.ok){box.className='alert alert-danger mt-2';box.innerText=j.msg;return;}box.className='alert alert-success mt-2';box.innerHTML='<b>'+j.trabajador.trabajador+'</b><br>'+j.trabajador.dni+' · '+(j.trabajador.cargo||'');beep();}
       let scanner=null;function abrirScanner(readerId,inputId){let el=document.getElementById(readerId);el.style.display='block';if(scanner){scanner.stop().catch(()=>{});scanner=null;}scanner=new Html5Qrcode(readerId);scanner.start({facingMode:'environment'},{fps:10,qrbox:220},decoded=>{document.getElementById(inputId).value=limpiarDni(decoded);beep();scanner.stop().catch(()=>{});el.style.display='none';}).catch(()=>alert('No se pudo activar cámara. Revise permisos.'));}
-      function setTurnoHorario(){let t=document.getElementById('turnoTrab').value;if(t==='NOCHE'){horaInicioTrab.value='22:00';horaFinTrab.value='06:00';}else{horaInicioTrab.value='06:30';horaFinTrab.value='16:30';}}
+      function setTurnoHorario(){let t=document.getElementById('turnoTrab')?.value;if(t==='NOCHE'){horaInicioTrab.value='22:00';horaFinTrab.value='06:00';}else{horaInicioTrab.value='06:30';horaFinTrab.value='16:30';}}
+      // Reloj circular funcional: toca/arrastra el círculo para elegir minutos; cambia la hora del campo activo.
+      let activeTimeInput=null;
+      function bindClock(){
+        document.querySelectorAll('#modalHora input[type=time]').forEach(inp=>{inp.addEventListener('focus',()=>activeTimeInput=inp);inp.addEventListener('click',()=>activeTimeInput=inp);});
+        activeTimeInput=document.getElementById('horaInicioDefault');
+        const face=document.querySelector('#modalHora .clock-face'); if(!face)return;
+        const hand=face.querySelector('.clock-hand'), bubble=face.querySelector('.clock-bubble');
+        const setFromEvent=(ev)=>{
+          const r=face.getBoundingClientRect(); const touch=ev.touches?ev.touches[0]:ev;
+          const cx=r.left+r.width/2, cy=r.top+r.height/2; const x=touch.clientX-cx, y=touch.clientY-cy;
+          let deg=Math.atan2(y,x)*180/Math.PI + 90; if(deg<0)deg+=360;
+          let minutes=Math.round(deg/6/5)*5; if(minutes>=60)minutes=0;
+          const inp=activeTimeInput||document.getElementById('horaInicioDefault');
+          let [hh]=String(inp.value||'00:00').split(':'); inp.value=String(hh).padStart(2,'0')+':'+String(minutes).padStart(2,'0');
+          if(hand) hand.style.transform='rotate('+(deg-90)+'deg)';
+          if(bubble) bubble.textContent=String(minutes);
+          ev.preventDefault();
+        };
+        let drag=false; face.addEventListener('mousedown',e=>{drag=true;setFromEvent(e)}); window.addEventListener('mousemove',e=>{if(drag)setFromEvent(e)}); window.addEventListener('mouseup',()=>drag=false);
+        face.addEventListener('touchstart',e=>{drag=true;setFromEvent(e)},{passive:false}); face.addEventListener('touchmove',e=>{if(drag)setFromEvent(e)},{passive:false}); face.addEventListener('touchend',()=>drag=false);
+      }
+      document.addEventListener('DOMContentLoaded',bindClock);
     </script>
     """
     return render_page(body, h=h, tab=tab, tareos=tareos, lecturas=lecturas, labores=labores, registros=registros, horas_total=horas_total, rend_total=rend_total)
@@ -433,6 +478,9 @@ def guardar_labor_hoja(hoja_id, tab):
     responsable = limpiar_texto(request.form.get('responsable') or h.get('responsable'))
     turno = limpiar_texto(request.form.get('turno') or 'DIA')
     tipo_tareo = limpiar_texto(request.form.get('tipo_tareo') or 'JORNAL')
+    if not grupo or not subgrupo:
+        flash('Debe seleccionar Actividad y Labor.', 'danger')
+        return redirect(url_for('detalle_hoja', hoja_id=hoja_id, tab='labores'))
     execute('INSERT INTO hoja_labores(hoja_id,grupo,subgrupo,labor,turno,tipo_tareo,responsable,creado_en,creado_por) VALUES(?,?,?,?,?,?,?,?,?)',
             (hoja_id,grupo,subgrupo,labor,turno,tipo_tareo,responsable,now_str(),session.get('usuario')), commit=True)
     flash('Nueva labor creada dentro de la hoja.', 'success')
@@ -479,9 +527,9 @@ def soporte():
     return render_page('<div class="phone-wrap"><h2 class="header-title">SOPORTE</h2><div class="floating-card"><b>Canal de soporte</b><p class="small text-muted mb-2">Registra incidencias de sincronización, acceso o lectura de fotocheck.</p><textarea class="form-control" rows="4" placeholder="Describe el problema..."></textarea><a class="btn btn-green w-100 mt-3" href="{{url_for(\'home\')}}">ENVIAR / VOLVER</a></div></div>')
 
 @app.route('/configuraciones')
-@login_required
+@admin_required
 def configuraciones():
-    body = '<div class="phone-wrap"><h2 class="header-title">CONFIGURACIONES</h2><div class="floating-card"><a class="btn btn-green w-100 mb-2" href="{{url_for(\'cargar_base\')}}"><i class="bi bi-file-earmark-excel"></i> Base trabajadores</a><a class="btn btn-outline-success w-100 mb-2" href="{{url_for(\'usuarios\')}}"><i class="bi bi-people"></i> Usuarios</a><a class="btn btn-outline-secondary w-100" href="{{url_for(\'home\')}}">Volver</a></div></div>'
+    body = '<div class="phone-wrap"><a class="back-mini" href="{{url_for(\'home\')}}"><i class="bi bi-chevron-left"></i></a><h2 class="header-title">CONFIGURACIÓN</h2><div class="floating-card"><a class="btn btn-green w-100 mb-2" href="{{url_for(\'cargar_base\')}}"><i class="bi bi-people"></i> Cargar trabajadores</a><a class="btn btn-green w-100 mb-2" href="{{url_for(\'cargar_actividades\')}}"><i class="bi bi-diagram-3"></i> Actividades / Labores / Consumidores</a><a class="btn btn-outline-success w-100 mb-2" href="{{url_for(\'plantilla_trabajadores\')}}">Plantilla trabajadores</a><a class="btn btn-outline-success w-100 mb-2" href="{{url_for(\'plantilla_actividades\')}}">Plantilla actividades</a><a class="btn btn-outline-secondary w-100 mb-2" href="{{url_for(\'usuarios\')}}"><i class="bi bi-people"></i> Usuarios</a><a class="btn btn-outline-secondary w-100" href="{{url_for(\'home\')}}">Volver</a></div></div>'
     return render_page(body)
 
 @app.route('/sincronizacion')
@@ -552,9 +600,67 @@ def cargar_base():
 @app.route('/plantilla-trabajadores')
 @admin_required
 def plantilla_trabajadores():
-    headers=['DNI','TRABAJADOR','EMPRESA','AREA','CARGO','ACTIVIDAD','PLANILLA','ESTADO','FECHA','GRUPO','SUBGRUPO','LABOR','RESPONSABLE','TURNO','TIPO','HORA_INICIO','HORA_FIN','REFRIGERIO_INICIO','REFRIGERIO_FIN','UNIDAD']
-    rows=[{'DNI':'12345678','TRABAJADOR':'APELLIDOS Y NOMBRES','EMPRESA':'AQUANQA I','AREA':'CAMPO','CARGO':'OPERARIO','ACTIVIDAD':'COSECHA','PLANILLA':'AGRARIO','ESTADO':'ACTIVO','FECHA':today_str(),'GRUPO':'GRUPO COSECHA','SUBGRUPO':'SUBGRUPO / CUADRILLA','LABOR':'COSECHA','RESPONSABLE':'APELLIDOS Y NOMBRES','TURNO':'DIA','TIPO':'JORNAL','HORA_INICIO':'06:30','HORA_FIN':'16:30','REFRIGERIO_INICIO':'12:00','REFRIGERIO_FIN':'13:00','UNIDAD':'BALDE'}]
-    return excel_response(headers, rows, 'plantilla_tareo_movil_completa.xlsx', 'TRABAJADORES_TAREO')
+    headers=['DNI','TRABAJADOR','EMPRESA','CARGO','ESTADO','FECHA']
+    rows=[{'DNI':'12345678','TRABAJADOR':'APELLIDOS Y NOMBRES','EMPRESA':'AQUANQA I','CARGO':'OPERARIO','ESTADO':'ACTIVO','FECHA':today_str()}]
+    return excel_response(headers, rows, 'plantilla_trabajadores.xlsx', 'TRABAJADORES')
+
+
+@app.route('/cargar-actividades', methods=['GET','POST'])
+@admin_required
+def cargar_actividades():
+    if request.method == 'POST':
+        f = request.files.get('archivo')
+        if not f or not f.filename.lower().endswith('.xlsx'):
+            flash('Suba un Excel .xlsx válido.', 'danger'); return redirect(url_for('cargar_actividades'))
+        wb = load_workbook(f, data_only=True, read_only=True); ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        if not rows:
+            flash('Excel vacío.', 'danger'); return redirect(url_for('cargar_actividades'))
+        headers = [normalizar_columna(c) for c in rows[0]]
+        aliases = {
+            'COD. ACTIVIDAD':'cod_actividad','COD ACTIVIDAD':'cod_actividad','COD_ACTIVIDAD':'cod_actividad',
+            'DESCRIPCION ACTIVIDAD':'desc_actividad','DESCRIPCIÓN ACTIVIDAD':'desc_actividad','DESC ACTIVIDAD':'desc_actividad',
+            'COD. LABOR':'cod_labor','COD LABOR':'cod_labor','COD_LABOR':'cod_labor',
+            'DESCRIPCION LABOR':'desc_labor','DESCRIPCIÓN LABOR':'desc_labor','DESC LABOR':'desc_labor',
+            'COD. CONSUMIDOR':'cod_consumidor','COD CONSUMIDOR':'cod_consumidor','COD_CONSUMIDOR':'cod_consumidor',
+            'DESCRIPCION CONSUMIDOR':'desc_consumidor','DESCRIPCIÓN CONSUMIDOR':'desc_consumidor','DESC CONSUMIDOR':'desc_consumidor'
+        }
+        required = ['desc_actividad','desc_labor']
+        mapped = {i: aliases.get(h) for i,h in enumerate(headers)}
+        if not any(v=='desc_actividad' for v in mapped.values()) or not any(v=='desc_labor' for v in mapped.values()):
+            flash('La plantilla debe tener Descripción Actividad y Descripción Labor.', 'danger'); return redirect(url_for('cargar_actividades'))
+        conn=get_conn(); cur=conn.cursor(); ins=0; omi=0; ahora=now_str()
+        for row in rows[1:]:
+            data={'cod_actividad':'','desc_actividad':'','cod_labor':'','desc_labor':'','cod_consumidor':'','desc_consumidor':''}
+            for i,val in enumerate(row):
+                k=mapped.get(i)
+                if k: data[k]=limpiar_texto(val)
+            if not data['desc_actividad'] or not data['desc_labor']:
+                omi += 1; continue
+            cur.execute(qmark('INSERT INTO actividades_maestras(cod_actividad,desc_actividad,cod_labor,desc_labor,cod_consumidor,desc_consumidor,estado,fecha_carga) VALUES(?,?,?,?,?,?,?,?)'),
+                        (data['cod_actividad'],data['desc_actividad'],data['cod_labor'],data['desc_labor'],data['cod_consumidor'],data['desc_consumidor'],'ACTIVO',ahora)); ins += 1
+        conn.commit(); cur.close(); conn.close()
+        flash(f'Actividades cargadas. Insertados: {ins} | Omitidos: {omi}', 'success')
+        return redirect(url_for('cargar_actividades'))
+    datos = rows_to_dict(execute('SELECT * FROM actividades_maestras ORDER BY fecha_carga DESC, desc_actividad, desc_labor LIMIT 150', fetchall=True))
+    body = """
+    <div class="phone-wrap desktop-pad"><a class="back-mini" href="{{url_for('configuraciones')}}"><i class="bi bi-chevron-left"></i></a><h2 class="header-title">ACTIVIDADES / LABORES / CONSUMIDORES</h2>
+    <form method="post" enctype="multipart/form-data" class="floating-card mb-2"><label class="form-label">Archivo Excel .xlsx</label><input class="form-control mb-2" type="file" name="archivo" accept=".xlsx" required><button class="btn btn-green w-100">CARGAR ACTIVIDADES</button><a class="btn btn-outline-success w-100 mt-2" href="{{url_for('plantilla_actividades')}}">PLANTILLA ACTIVIDADES</a></form>
+    {% for r in datos %}<div class="worker-card"><div class="worker-title"><div>ACTIVIDAD<br><b>{{r.desc_actividad}}</b></div><div class="text-end">LABOR<br><b>{{r.desc_labor}}</b></div></div><div class="small-label mt-2">CONSUMIDOR</div><div class="small-value">{{r.desc_consumidor or 'NO OBLIGATORIO'}}</div></div>{% else %}<div class="alert alert-light border text-center">Sin actividades cargadas.</div>{% endfor %}</div>"""
+    return render_page(body, datos=datos)
+
+@app.route('/plantilla-actividades')
+@admin_required
+def plantilla_actividades():
+    headers=['Cod. Actividad','Descripción Actividad','Cod. Labor','Descripción Labor','Cod. Consumidor','Descripción Consumidor']
+    rows=[{'Cod. Actividad':'ACT001','Descripción Actividad':'COSECHA','Cod. Labor':'LAB001','Descripción Labor':'COSECHA MANUAL','Cod. Consumidor':'CON001','Descripción Consumidor':'CAMPO 01'},
+          {'Cod. Actividad':'ACT001','Descripción Actividad':'COSECHA','Cod. Labor':'LAB002','Descripción Labor':'COSECHA SELECTIVA','Cod. Consumidor':'','Descripción Consumidor':''}]
+    return excel_response(headers, rows, 'plantilla_actividades_labores_consumidores.xlsx', 'ACTIVIDADES')
+
+@app.route('/api/actividades-maestras')
+@login_required
+def api_actividades_maestras():
+    return jsonify(ok=True, data=get_actividades_maestras())
 
 @app.route('/usuarios', methods=['GET','POST'])
 @admin_required
@@ -568,7 +674,7 @@ def usuarios():
             except Exception as e: flash(f'No se pudo crear usuario: {e}', 'danger')
         return redirect(url_for('usuarios'))
     users=rows_to_dict(execute('SELECT usuario,nombres,rol,estado,creado_en FROM usuarios ORDER BY usuario', fetchall=True))
-    body='<div class="phone-wrap"><h2 class="header-title">USUARIOS</h2><form method="post" class="floating-card mb-2"><input class="form-control mb-2" name="usuario" placeholder="Usuario" required><input class="form-control mb-2" name="nombres" placeholder="Nombres"><input class="form-control mb-2" type="password" name="clave" placeholder="Clave" required><select class="form-select mb-2" name="rol"><option value="operador">operador</option><option value="admin">admin</option></select><select class="form-select mb-2" name="estado"><option>ACTIVO</option><option>INACTIVO</option></select><button class="btn btn-green w-100">Guardar</button></form>{% for u in users %}<div class="worker-card"><b>{{u.usuario}}</b> · {{u.rol}}<br><span class="small text-muted">{{u.nombres}} · {{u.estado}}</span></div>{% endfor %}</div>'
+    body='<div class="phone-wrap"><a class="back-mini" href="{{url_for(\'configuraciones\')}}"><i class="bi bi-chevron-left"></i></a><h2 class="header-title">USUARIOS</h2><form method="post" class="floating-card mb-2"><input class="form-control mb-2" name="usuario" placeholder="Usuario" required><input class="form-control mb-2" name="nombres" placeholder="Nombres"><input class="form-control mb-2" type="password" name="clave" placeholder="Clave" required><select class="form-select mb-2" name="rol"><option value="operador">operador</option><option value="admin">admin</option></select><select class="form-select mb-2" name="estado"><option>ACTIVO</option><option>INACTIVO</option></select><button class="btn btn-green w-100">Guardar</button></form>{% for u in users %}<div class="worker-card"><b>{{u.usuario}}</b> · {{u.rol}}<br><span class="small text-muted">{{u.nombres}} · {{u.estado}}</span></div>{% endfor %}</div>'
     return render_page(body, users=users)
 
 # ========================= COMPAT API MARCACIÓN BÁSICA =========================
