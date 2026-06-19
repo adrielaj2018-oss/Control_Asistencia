@@ -298,6 +298,24 @@ input[type="text"], input:not([type]), textarea { text-transform:uppercase; }
 #modalLabor .modal-suggest{position:absolute!important;left:20px!important;right:20px!important;z-index:4000!important;max-height:142px!important;overflow:auto!important;background:#fff!important;box-shadow:0 10px 24px rgba(0,0,0,.18)!important}
 #modalHora .modal-dialog{max-width:430px!important}.touch-clock-panel{padding:7px!important}.time-display{height:36px!important;font-size:22px!important}.time-slider{height:38px!important;cursor:pointer!important;touch-action:none!important;appearance:none!important;-webkit-appearance:none!important;background:transparent!important}.time-slider::-webkit-slider-runnable-track{height:8px;background:#dfe7df;border:1px solid #9ebaa0;border-radius:999px}.time-slider::-webkit-slider-thumb{-webkit-appearance:none!important;width:38px!important;height:38px!important;margin-top:-16px!important;border-radius:999px!important;background:#2f773b!important;border:4px solid #fff!important;box-shadow:0 3px 9px rgba(0,0,0,.28)!important;cursor:grab!important}.time-slider::-webkit-slider-thumb:active{cursor:grabbing!important}.time-slider::-moz-range-track{height:8px;background:#dfe7df;border:1px solid #9ebaa0;border-radius:999px}.time-slider::-moz-range-thumb{width:34px!important;height:34px!important;border-radius:999px!important;background:#2f773b!important;border:4px solid #fff!important;box-shadow:0 3px 9px rgba(0,0,0,.28)!important;cursor:grab!important}.touch-clock-panel:after{content:'◷';display:block;text-align:center;color:#2f773b;font-size:18px;font-weight:900;margin-top:-4px}.trabajador-card-ref{max-width:100%!important;margin:7px 8px!important;padding:10px 14px!important;border-radius:12px!important}.trabajador-card-ref .worker-title{gap:8px!important;font-size:8px!important}.trabajador-card-ref .worker-title b{font-size:13px!important;line-height:1.12!important}.trabajador-grid-ref{grid-template-columns:repeat(3,1fr)!important;gap:10px 8px!important;margin-top:14px!important}.trabajador-grid-ref label{font-size:8.5px!important;margin-bottom:4px!important}.trabajador-grid-ref .time-box,.trabajador-grid-ref .metric-box{height:31px!important;font-size:14px!important;padding:4px 7px!important;border-radius:4px!important}.trabajador-grid-ref .mini-badge{height:35px!important;font-size:11px!important;max-width:100%!important}.worker-card.editable-tareo:after{right:10px!important;bottom:5px!important;font-size:8px!important}.phone-wrap{max-width:560px!important}@media(max-width:860px){.phone-wrap{max-width:100%!important}.trabajador-card-ref{margin:7px 5px!important;padding:9px 12px!important}.trabajador-card-ref .worker-title b{font-size:12px!important}.trabajador-grid-ref{gap:9px 7px!important}.trabajador-grid-ref .time-box,.trabajador-grid-ref .metric-box{height:30px!important;font-size:13px!important}}
 
+
+
+/* ===== PARCHE 249 FINAL OMAR: compacto, métricas resaltadas, hoja sin blanco, reloj circular ===== */
+.trabajador-card-ref{max-width:100%!important;margin:5px 6px!important;padding:8px 12px!important;border:2px solid #2f773b!important;border-radius:12px!important;box-shadow:0 2px 7px rgba(0,0,0,.10)!important}
+.trabajador-card-ref .worker-title{grid-template-columns:1.25fr 1fr!important;gap:8px!important;font-size:7.5px!important;margin-bottom:8px!important}
+.trabajador-card-ref .worker-title b{font-size:12px!important;line-height:1.08!important;color:#006b2e!important}
+.trabajador-grid-ref{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:7px 8px!important;margin-top:7px!important}
+.trabajador-grid-ref label{font-size:7.8px!important;margin-bottom:3px!important;color:#5f6f59!important;font-weight:900!important}
+.trabajador-grid-ref .time-box{height:28px!important;font-size:12.5px!important;padding:3px 7px!important;background:#fbfffb!important;border:1px solid #9ebaa0!important;border-radius:4px!important;color:#006b2e!important;font-weight:900!important}
+.trabajador-grid-ref .metric-box{height:31px!important;font-size:16px!important;padding:3px 8px!important;background:#d9f4de!important;border:1.8px solid #39a04b!important;border-radius:6px!important;color:#005b25!important;font-weight:1000!important;box-shadow:inset 0 0 0 1px rgba(47,119,59,.08)!important}
+.trabajador-grid-ref .mini-badge{height:31px!important;font-size:11px!important;max-width:100%!important;border-radius:5px!important}.worker-card.editable-tareo:after{right:9px!important;bottom:4px!important;font-size:7.5px!important}
+/* compactar tarjetas de hoja/listado para quitar espacio blanco */
+.tareo-list-page .swipe-wrap{margin:7px 8px!important}.tareo-list-page .worker-card{padding:8px 11px!important;min-height:auto!important}.tareo-list-page .person-dot{width:40px!important;height:40px!important;font-size:22px!important;margin-right:8px!important}.tareo-list-page .worker-title{font-size:8px!important;gap:6px!important}.tareo-list-page .worker-title b{font-size:10px!important}.tareo-list-page .worker-grid{gap:5px!important;margin-top:5px!important}.tareo-list-page .small-label{font-size:7px!important}.tareo-list-page .small-value{font-size:8px!important}.tareo-list-page .mini-badge{height:25px!important;padding:3px!important}
+/* reloj circular con manija */
+.time-slider{display:none!important}.round-clock{width:168px;height:168px;border-radius:50%;background:#efeaf6;margin:8px auto 10px;position:relative;touch-action:none;user-select:none;cursor:grab;box-shadow:inset 0 0 0 1px #d4cce1}.round-clock:active{cursor:grabbing}.round-clock .clk-num{position:absolute;font-size:10px;font-weight:800;color:#5f6070;transform:translate(-50%,-50%)}.round-clock .clk-center{position:absolute;left:50%;top:50%;width:10px;height:10px;border-radius:999px;background:#4b3f99;transform:translate(-50%,-50%);z-index:3}.round-clock .clk-hand{position:absolute;left:50%;top:50%;width:58px;height:3px;background:#4b3f99;transform-origin:left center;transform:rotate(-90deg);z-index:2}.round-clock .clk-knob{position:absolute;width:33px;height:33px;border-radius:50%;background:#4b3f99;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:900;transform:translate(-50%,-50%);z-index:4;box-shadow:0 3px 8px rgba(0,0,0,.22)}.round-clock .clk-label{position:absolute;left:50%;top:50%;font-size:9px;color:#4b3f99;font-weight:900;transform:translate(-50%,-50%)}
+.touch-clock-panel{padding:7px!important}.time-display{height:32px!important;font-size:22px!important;margin-bottom:5px!important}.touch-clock-picks button{height:32px!important;font-size:9px!important}
+@media(max-width:860px){.trabajador-card-ref{margin:5px 4px!important;padding:7px 10px!important}.trabajador-card-ref .worker-title b{font-size:11px!important}.trabajador-grid-ref{gap:6px!important}.trabajador-grid-ref .time-box{height:27px!important;font-size:11.5px!important}.trabajador-grid-ref .metric-box{height:29px!important;font-size:14px!important}.round-clock{width:155px;height:155px}.round-clock .clk-hand{width:53px}.round-clock .clk-knob{width:30px;height:30px}}
+
 </style></head><body class="{{ 'login-page' if not session.get('usuario') else '' }}"><div class="app-bg"><main class="shell">
 {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="phone-wrap mt-2">{% for cat,msg in messages %}<div class="alert alert-{{cat}} shadow-sm">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
 {{ body|safe }}</main></div>
@@ -413,6 +431,38 @@ input[type="text"], input:not([type]), textarea { text-transform:uppercase; }
  document.addEventListener('shown.bs.modal',ev=>{if(ev.target&&ev.target.id==='modalHora')setTimeout(bindHorario,80); if(ev.target&&ev.target.id==='modalLabor')setTimeout(fixModalLabor,30);});
  document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{bindHorario();fixModalLabor();},120);});
  window.setCampoHorario=setActive; window.aplicarHorarioRegistro=sync;
+})();
+</script>
+
+
+<script>
+/* ===== PARCHE 249 FINAL: reloj circular funcional + bloqueo visual de DNI duplicado ===== */
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const pad=n=>String(Number(n)||0).padStart(2,'0');
+  const ids=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
+  let active='horaInicioDefault';
+  function toMin(v){let p=String(v||'00:00').split(':'),h=parseInt(p[0]||0,10),m=parseInt(p[1]||0,10);if(isNaN(h))h=0;if(isNaN(m))m=0;return Math.max(0,Math.min(1435,h*60+m));}
+  function minToTime(m){m=Math.round(Math.max(0,Math.min(1435,Number(m)||0))/5)*5;return pad(Math.floor(m/60))+':'+pad(m%60);}
+  function activeInput(){return $(active)||$('horaInicioDefault');}
+  function netHours(hi,hf,ri,rf){let a=toMin(hi),b=toMin(hf);if(b<=a)b+=1440;let c=toMin(ri),d=toMin(rf);if(d<=c)d+=1440;if(b>1440&&c<a){c+=1440;d+=1440;}return (Math.max(0,(b-a)-Math.max(0,Math.min(b,d)-Math.max(a,c)))/60).toFixed(2);}
+  function syncHidden(){let hi=$('horaInicioDefault')?.value||'06:30',hf=$('horaFinDefault')?.value||'16:30',ri=$('refInicioDefault')?.value||'12:00',rf=$('refFinDefault')?.value||'13:00';[['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{let e=$(id);if(e)e.value=v;});let h=netHours(hi,hf,ri,rf);let ht=$('horasTrab');if(ht)ht.value=h;let txt=$('horarioActivoTxt');if(txt)txt.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+h+'.';}
+  function ensureClock(){let panel=document.querySelector('#modalHora .touch-clock-panel'); if(!panel)return null; let clock=$('roundClock24'); if(clock)return clock; clock=document.createElement('div'); clock.id='roundClock24'; clock.className='round-clock'; clock.innerHTML='<span class="clk-num" style="left:50%;top:9%">00</span><span class="clk-num" style="left:91%;top:50%">06</span><span class="clk-num" style="left:50%;top:91%">12</span><span class="clk-num" style="left:9%;top:50%">18</span><div class="clk-hand"></div><div class="clk-center"></div><div class="clk-knob">00</div>';
+    let disp=$('touchClockValue'); if(disp && disp.parentNode) disp.parentNode.insertBefore(clock, disp.nextSibling); else panel.prepend(clock); return clock; }
+  function draw(){let inp=activeInput(),t=inp?inp.value:'06:30',m=toMin(t),deg=(m/1440)*360-90;let disp=$('touchClockValue');if(disp)disp.textContent=t;let sl=$('timeSlider24');if(sl)sl.value=m;let clock=ensureClock();if(clock){let hand=clock.querySelector('.clk-hand'),knob=clock.querySelector('.clk-knob');if(hand)hand.style.transform='rotate('+deg+'deg)';if(knob){let r=clock.getBoundingClientRect(),rad=(r.width||168)*0.36,cx=(r.width||168)/2,cy=(r.height||168)/2,ang=(m/1440)*Math.PI*2-Math.PI/2;knob.style.left=(cx+Math.cos(ang)*rad)+'px';knob.style.top=(cy+Math.sin(ang)*rad)+'px';knob.textContent=pad(Math.round((m%60)/5)*5).replace('60','55');}}
+    let box=$('clockPickFields'); if(box)[...box.querySelectorAll('button')].forEach(b=>b.classList.toggle('active',b.dataset.target===active)); syncHidden(); }
+  function setActive(id){active=id;draw();let e=$(id);if(e)try{e.focus({preventScroll:true});}catch(_){}}
+  function setMinutes(m){let inp=activeInput(); if(!inp)return; inp.value=minToTime(m); draw();}
+  function setFromEvent(ev){let clock=ensureClock(); if(!clock)return; let r=clock.getBoundingClientRect(); let pt=ev.touches&&ev.touches[0]?ev.touches[0]:ev; let x=pt.clientX-r.left-r.width/2, y=pt.clientY-r.top-r.height/2; let ang=Math.atan2(y,x)+Math.PI/2; if(ang<0)ang+=Math.PI*2; let m=Math.round(((ang/(Math.PI*2))*1440)/5)*5; setMinutes(m); ev.preventDefault&&ev.preventDefault();}
+  function bindClock(){ensureClock(); let clock=$('roundClock24'); if(clock && clock.dataset.ok!=='1'){clock.dataset.ok='1'; ['pointerdown','pointermove','mousedown','mousemove','touchstart','touchmove','click'].forEach(ev=>clock.addEventListener(ev,e=>{if(ev.includes('move')&&!(e.buttons||e.touches))return;setFromEvent(e);},{passive:false}));}
+    let box=$('clockPickFields'); if(box)[...box.querySelectorAll('button')].forEach(b=>{b.onclick=e=>{e.preventDefault();setActive(b.dataset.target);};b.onpointerdown=e=>setActive(b.dataset.target);}); ids.forEach(id=>{let e=$(id); if(e){e.readOnly=true;e.onclick=()=>setActive(id);e.onfocus=()=>setActive(id);e.onpointerdown=()=>setActive(id);}}); draw();}
+  function onlyDni(v){let m=String(v||'').match(/(?:^|\D)(\d{8})(?:\D|$)/);let d=m?m[1]:String(v||'').replace(/\D/g,'');return d.length>=8?d.slice(-8):d;}
+  async function checkDuplicateNow(d){let labor=document.querySelector('#frmTrab input[name="labor_id"]')?.value||''; if(!labor||d.length!==8)return false; try{let r=await fetch('/api/trabajador/'+encodeURIComponent(d)+'?hoja_id={{h.id}}&labor_id='+encodeURIComponent(labor),{cache:'no-store',credentials:'same-origin'});let j=await r.json(); if(j&&j.duplicado){let st=$('dniStatus'); if(st){st.className='scan-bad mt-2 flash';st.innerHTML='✕ '+(j.msg||('DNI '+d+' duplicado en esta labor'));} if(window.workerMap){window.workerMap.delete(d); window.renderQueue&&window.renderQueue();} if(window.__dniQueueFinal){window.__dniQueueFinal.delete(d); window.renderQueueFinal&&window.renderQueueFinal();} let inp=$('dniTrab'); if(inp){inp.value='';inp.focus();} return true;}}catch(e){} return false;}
+  function bindDniGuard(){let inp=$('dniTrab'); if(!inp||inp.dataset.dupGuard==='1')return; inp.dataset.dupGuard='1'; ['input','keyup','change','paste','blur'].forEach(ev=>inp.addEventListener(ev,()=>setTimeout(()=>{let d=onlyDni(inp.value);checkDuplicateNow(d);},ev==='paste'?100:30),true)); let form=$('frmTrab'); if(form&&!form.dataset.dupSubmit){form.dataset.dupSubmit='1'; form.addEventListener('submit',async e=>{let vals=($('dnisMasivos')?.value||inp.value||'').split(/[,;\s]+/).map(onlyDni).filter(x=>x.length===8); for(const d of vals){if(await checkDuplicateNow(d)){e.preventDefault();e.stopImmediatePropagation();return false;}}},true);}}
+  document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalHora')setTimeout(bindClock,80); if(e.target&&e.target.id==='modalRegistro')setTimeout(bindDniGuard,80);});
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{bindClock();bindDniGuard();},150));
+  window.setCampoHorario=setActive; window.aplicarHorarioRegistro=syncHidden;
 })();
 </script>
 
@@ -1429,6 +1479,29 @@ def usuarios():
 def api_trabajador(dni):
     dni = limpiar_dni(dni)
     if len(dni) != 8: return jsonify(ok=False, msg='DNI inválido.')
+
+    # Al registrar desde una hoja/labor, validar duplicado ANTES de agregar al pre-registro.
+    hoja_id = (request.args.get('hoja_id') or '').strip()
+    labor_id = (request.args.get('labor_id') or '').strip()
+    if not hoja_id or not labor_id:
+        try:
+            from urllib.parse import urlparse, parse_qs
+            ref = request.referrer or ''
+            qs = parse_qs(urlparse(ref).query)
+            if not labor_id and qs.get('labor_id'):
+                labor_id = qs.get('labor_id', [''])[0]
+            if not hoja_id:
+                m = re.search(r'/hoja/(\d+)', urlparse(ref).path or '')
+                if m: hoja_id = m.group(1)
+        except Exception:
+            pass
+    if hoja_id and labor_id:
+        try:
+            if scalar('SELECT COUNT(*) AS c FROM tareos WHERE hoja_id=? AND labor_id=? AND dni=?', (hoja_id, labor_id, dni)):
+                return jsonify(ok=False, duplicado=True, msg=f'DNI {dni} ya está registrado en esta labor. No se puede duplicar.')
+        except Exception:
+            pass
+
     t = row_to_dict(execute('SELECT * FROM trabajadores WHERE dni=?', (dni,), fetchone=True))
     if not t: return jsonify(ok=False, msg='DNI no encontrado en la base de trabajadores.')
     return jsonify(ok=True, trabajador=t, sugerido='ENTRADA')
