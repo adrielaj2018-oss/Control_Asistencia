@@ -455,477 +455,210 @@ def detalle_hoja(hoja_id):
     <div class="modal fade" id="modalRegistro" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='trabajadores')}}" id="frmTrab"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-person-plus"></i> Registrar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniTrab" class="form-control" placeholder="Escanee o digite DNI" autocomplete="off" inputmode="numeric" maxlength="30" oninput="autoDetectarDniInline(this)" onkeyup="autoDetectarDniInline(this)" onchange="autoDetectarDniInline(this)"><button type="button" class="btn btn-green" onclick="abrirScanner('readerTrab','dniTrab')"><i class="bi bi-upc-scan"></i></button></div><div id="readerTrab" style="display:none;margin-top:8px"></div><div id="dniStatus" class="mt-2 field-help">Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.</div><input type="hidden" name="dnis_masivos" id="dnisMasivos"><div class="queue-title">PRE-REGISTRO DE TRABAJADORES</div><div id="workerQueue" class="worker-queue"><div class="text-muted small text-center">Aún no hay trabajadores detectados.</div></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.grupo}} / {{l.subgrupo}} / {{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><input name="turno" id="turnoTrab" type="hidden" value="DIA"><input name="tipo_tareo" type="hidden" value="JORNAL"><input name="hora_inicio" id="horaInicioTrab" type="hidden" value="06:30"><input name="hora_fin" id="horaFinTrab" type="hidden" value="16:30"><input name="ref_inicio" id="refInicioTrab" type="hidden" value="12:00"><input name="ref_fin" id="refFinTrab" type="hidden" value="13:00"><input name="horas" id="horasTrab" type="hidden" value="9.50"><input name="cantidad" type="hidden" value="0.00"><div id="horarioActivoTxt" class="alert alert-success small mt-2 mb-0"><b>Horario activo:</b> 06:30 - 16:30 / Refrigerio 12:00 - 13:00. Se edita desde el icono de reloj del módulo Trabajadores.</div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR TRABAJADORES</button></div></form></div></div></div>
     <div class="modal fade" id="modalAvance" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='rendimiento')}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-upc-scan"></i> Registrar avance / lectura</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniAvance" class="form-control" placeholder="Escanee o digite DNI" required><button type="button" class="btn btn-green" onclick="abrirScanner('readerAvance','dniAvance')"><i class="bi bi-upc-scan"></i></button></div><div id="readerAvance" style="display:none;margin-top:8px"></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><div class="row g-2"><div class="col-6"><label class="form-label">A. DIURNO</label><input name="cantidad" type="number" step="0.01" class="form-control" value="1.00"></div><div class="col-6"><label class="form-label">A. NOCT.</label><input name="a_noct" type="number" step="0.01" class="form-control" value="0.00"></div><div class="col-6"><label class="form-label">UNIDAD</label><select name="unidad" class="form-select"><option>BALDE</option><option>KG</option><option>JABA</option><option>UNIDAD</option></select></div><div class="col-6"><label class="form-label">MÉTODO</label><select name="metodo" class="form-select"><option>QR/CÓDIGO</option><option>DIGITACIÓN</option><option>LECTOR USB</option></select></div></div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR AVANCE</button></div></form></div></div></div>
     <script>
-      function limpiarDni(v){let raw=(v||'').toString();let m=raw.match(/(?:^|\D)(\d{8})(?:\D|$)/);let d=m?m[1]:raw.replace(/\D/g,'');return d.length>=8?d.slice(-8):d;}
-      async function buscarTrabajadorLibre(){let dni=limpiarDni(document.getElementById('buscarDni').value);document.getElementById('buscarDni').value=dni;let box=document.getElementById('buscarResultado');if(dni.length!==8){box.className='alert alert-warning mt-2';box.innerText='Ingrese DNI válido de 8 dígitos.';return;}let r=await fetch('/api/trabajador/'+dni);let j=await r.json();if(!j.ok){box.className='alert alert-danger mt-2';box.innerText=j.msg;return;}box.className='alert alert-success mt-2';box.innerHTML='<b>'+j.trabajador.trabajador+'</b><br>'+j.trabajador.dni+' · '+(j.trabajador.cargo||'');beep();}
-      let scanner=null;function abrirScanner(readerId,inputId){let el=document.getElementById(readerId);el.style.display='block';if(scanner){scanner.stop().catch(()=>{});scanner=null;}scanner=new Html5Qrcode(readerId);scanner.start({facingMode:'environment'},{fps:10,qrbox:220},decoded=>{document.getElementById(inputId).value=limpiarDni(decoded);document.getElementById(inputId).dispatchEvent(new Event('input',{bubbles:true})); if(inputId==='dniTrab'){autoDetectarDniInline(document.getElementById(inputId));} beep();scanner.stop().catch(()=>{});el.style.display='none';}).catch(()=>alert('No se pudo activar cámara. Revise permisos.'));}
-      function setTurnoHorario(){let t=document.getElementById('turnoTrab')?.value;if(t==='NOCHE'){horaInicioTrab.value='22:00';horaFinTrab.value='06:00';}else{horaInicioTrab.value='06:30';horaFinTrab.value='16:30';}}
-      let activeTimeInput=null;
-      function abrirRelojPara(inp){activeTimeInput=inp;['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'].forEach((id,i)=>{let el=document.getElementById(id); if(!el)return; const src=[horaInicioTrab,horaFinTrab,refInicioTrab,refFinTrab][i]; el.value=src.value;}); const m=new bootstrap.Modal(document.getElementById('modalHora')); m.show();}
-      function aplicarHorarioRegistro(){
-        if(document.getElementById('horaInicioTrab')){horaInicioTrab.value=horaInicioDefault.value;horaFinTrab.value=horaFinDefault.value;refInicioTrab.value=refInicioDefault.value;refFinTrab.value=refFinDefault.value;}
-        beep();
+(function(){
+  'use strict';
+  const MAESTROS_DET={{ maestros_json|safe }};
+  const $=(id)=>document.getElementById(id);
+  const pad=(n)=>String(Number(n)||0).padStart(2,'0');
+  const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+  function playOk(){try{beep();}catch(e){}}
+  function onlyDni(v){
+    const raw=String(v||'');
+    const m=raw.match(/(?:^|\D)(\d{8})(?:\D|$)/);
+    const d=m?m[1]:raw.replace(/\D/g,'');
+    return d.length>=8?d.slice(-8):d;
+  }
+  window.limpiarDni=onlyDni;
+
+  // ================== BUSCADOR Y QR/CÓDIGO ==================
+  window.buscarTrabajadorLibre=async function(){
+    const inp=$('buscarDni'), box=$('buscarResultado');
+    const dni=onlyDni(inp?inp.value:'');
+    if(inp)inp.value=dni;
+    if(!box)return;
+    if(dni.length!==8){box.className='alert alert-warning mt-2';box.textContent='Ingrese DNI válido de 8 dígitos.';return;}
+    box.className='alert alert-light border mt-2'; box.innerHTML='Buscando <b>'+dni+'</b>...';
+    try{
+      const r=await fetch('/api/trabajador/'+encodeURIComponent(dni),{cache:'no-store',credentials:'same-origin'});
+      const j=await r.json();
+      if(!j.ok){box.className='alert alert-danger mt-2'; box.textContent=j.msg||'DNI no encontrado.'; return;}
+      const t=j.trabajador||{};
+      box.className='alert alert-success mt-2';
+      box.innerHTML='<b>'+(t.trabajador||'TRABAJADOR')+'</b><br>'+dni+' · '+(t.cargo||'')+' · '+(t.area||'');
+      playOk();
+    }catch(e){box.className='alert alert-danger mt-2';box.textContent='No se pudo consultar la base de trabajadores.';}
+  };
+
+  let scanner=null;
+  window.abrirScanner=function(readerId,inputId){
+    const el=$(readerId), input=$(inputId); if(!el||!input)return;
+    el.style.display='block';
+    if(scanner){try{scanner.stop();}catch(e){} scanner=null;}
+    scanner=new Html5Qrcode(readerId);
+    scanner.start({facingMode:'environment'},{fps:10,qrbox:220},decoded=>{
+      input.value=onlyDni(decoded);
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+      if(inputId==='dniTrab') procesarDni(input.value,true);
+      playOk();
+      try{scanner.stop();}catch(e){}
+      el.style.display='none';
+    }).catch(()=>alert('No se pudo activar cámara. Revise permisos.'));
+  };
+
+  // ================== DNI AUTOMÁTICO REAL ==================
+  const workerMap=new Map();
+  window.workerMap=workerMap;
+  window.renderQueue=function(){
+    const q=$('workerQueue'), h=$('dnisMasivos'); if(!q||!h)return;
+    h.value=[...workerMap.keys()].join(',');
+    if(workerMap.size===0){q.innerHTML='<div class="text-muted small text-center">Aún no hay trabajadores detectados.</div>';return;}
+    q.innerHTML=[...workerMap.entries()].map(([dni,n])=>
+      '<div class="queue-item"><div><b>'+dni+'</b><br><span>'+n+'</span></div><button type="button" class="btn btn-sm btn-outline-danger" onclick="workerMap.delete(\''+dni+'\');renderQueue();">×</button></div>'
+    ).join('');
+  };
+  function dniStatus(kind,html){
+    const st=$('dniStatus'); if(!st)return;
+    st.className=(kind==='ok'?'scan-ok mt-2 flash':kind==='bad'?'scan-bad mt-2 flash':'mt-2 field-help');
+    st.innerHTML=html;
+  }
+  let dniTimer=null, dniBusy=false, dniLast='';
+  async function procesarDni(valor, forzar=false){
+    const inp=$('dniTrab'); if(!inp)return;
+    const dni=onlyDni(valor || inp.value);
+    if(dni.length<8){ if(forzar) dniStatus('help','Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.'); return; }
+    inp.value=dni;
+    if(!forzar && dni===dniLast)return;
+    if(dniBusy){ clearTimeout(dniTimer); dniTimer=setTimeout(()=>procesarDni(dni,true),120); return; }
+    dniBusy=true; dniLast=dni;
+    dniStatus('ok','Buscando DNI <b>'+dni+'</b> en base trabajadores...');
+    try{
+      const r=await fetch('/api/trabajador/'+encodeURIComponent(dni),{cache:'no-store',credentials:'same-origin'});
+      let j={ok:false,msg:'Respuesta inválida'}; try{j=await r.json();}catch(e){}
+      if(!j.ok){
+        dniStatus('bad','✕ '+(j.msg||'DNI no encontrado en base trabajadores')+' <b>'+dni+'</b>');
+        playOk(); inp.select(); return;
       }
-      function bindClock(){
-        document.querySelectorAll('#modalHora input[type=time]').forEach(inp=>{inp.addEventListener('focus',()=>activeTimeInput=inp);inp.addEventListener('click',()=>activeTimeInput=inp);});
-        activeTimeInput=document.getElementById('horaInicioDefault');
-        const face=document.querySelector('#modalHora .clock-face'); if(!face)return;
-        const hand=face.querySelector('.clock-hand'), bubble=face.querySelector('.clock-bubble');
-        const setFromEvent=(ev)=>{
-          const r=face.getBoundingClientRect(); const touch=ev.touches?ev.touches[0]:ev;
-          const cx=r.left+r.width/2, cy=r.top+r.height/2; const x=touch.clientX-cx, y=touch.clientY-cy;
-          let deg=Math.atan2(y,x)*180/Math.PI + 90; if(deg<0)deg+=360;
-          let minute=Math.round(deg/6/5)*5; if(minute>=60)minute=0;
-          const inp=activeTimeInput||document.getElementById('horaInicioDefault');
-          let [hh]=String(inp.value||'00:00').split(':'); inp.value=String(hh).padStart(2,'0')+':'+String(minute).padStart(2,'0');
-          if(hand) hand.style.transform='rotate('+(deg-90)+'deg)';
-          if(bubble) bubble.textContent=String(minute).padStart(2,'0');
-          const map={horaInicioDefault:'horaInicioTrab',horaFinDefault:'horaFinTrab',refInicioDefault:'refInicioTrab',refFinDefault:'refFinTrab'};
-          if(map[inp.id] && document.getElementById(map[inp.id])) document.getElementById(map[inp.id]).value=inp.value;
-          ev.preventDefault();
-        };
-        let drag=false; face.addEventListener('mousedown',e=>{drag=true;setFromEvent(e)}); window.addEventListener('mousemove',e=>{if(drag)setFromEvent(e)}); window.addEventListener('mouseup',()=>drag=false);
-        face.addEventListener('touchstart',e=>{drag=true;setFromEvent(e)},{passive:false}); face.addEventListener('touchmove',e=>{if(drag)setFromEvent(e)},{passive:false}); face.addEventListener('touchend',()=>drag=false);
-      }
-      const workerMap=new Map();
-      function renderQueue(){const q=document.getElementById('workerQueue'), h=document.getElementById('dnisMasivos'); if(!q||!h)return; h.value=[...workerMap.keys()].join(','); if(workerMap.size===0){q.innerHTML='<div class="text-muted small text-center">Aún no hay trabajadores detectados.</div>';return;} q.innerHTML=[...workerMap.entries()].map(([dni,n])=>'<div class="queue-item"><div><b>'+dni+'</b><br><span>'+n+'</span></div><button type="button" class="btn btn-sm btn-outline-danger" onclick="workerMap.delete(\''+dni+'\');renderQueue()">×</button></div>').join('');}
-      async function detectarDniTrab(){const inp=document.getElementById('dniTrab'), st=document.getElementById('dniStatus'); if(!inp||!st)return; const dni=limpiarDni(inp.value); if(dni.length!==8)return; inp.value=dni; let r=await fetch('/api/trabajador/'+dni); let j=await r.json(); if(!j.ok){st.className='scan-bad mt-2 flash';st.textContent=j.msg;beep();return;} if(workerMap.has(dni)){st.className='scan-ok mt-2 flash';st.innerHTML='✓ DNI ya está en pre-registro: <b>'+dni+'</b>';beep(); setTimeout(()=>{inp.value='';inp.focus();},200); return;} workerMap.set(dni,j.trabajador.trabajador||'TRABAJADOR'); renderQueue(); st.className='scan-ok mt-2'; st.innerHTML='✓ Reconocido: <b>'+j.trabajador.trabajador+'</b>'; beep(); setTimeout(()=>{inp.value='';inp.focus();},250);}
-      function bindDniAuto(){const inp=document.getElementById('dniTrab'); if(!inp || inp.dataset.boundV9)return; inp.dataset.boundV9='1'; inp.addEventListener('input',()=>autoDetectarDniInline(inp)); inp.addEventListener('keyup',()=>autoDetectarDniInline(inp)); inp.addEventListener('change',()=>autoDetectarDniInline(inp)); inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();autoDetectarDniInline(inp);}}); inp.addEventListener('paste',()=>setTimeout(()=>autoDetectarDniInline(inp),30));}
-      
+      const t=j.trabajador||{}; const nombre=t.trabajador||t.nombres||t.nombre||'TRABAJADOR';
+      if(!workerMap.has(dni)){workerMap.set(dni,nombre); window.renderQueue();}
+      dniStatus('ok','✓ Reconocido automáticamente: <b>'+nombre+'</b> · '+dni);
+      playOk();
+      await sleep(180); inp.value=''; dniLast=''; inp.focus();
+    }catch(e){
+      dniStatus('bad','Error consultando trabajador. Revisa conexión o sesión.');
+    }finally{dniBusy=false;}
+  }
+  window.autoDetectarDniInline=function(el){
+    const inp=el||$('dniTrab'); if(!inp)return;
+    clearTimeout(dniTimer);
+    dniTimer=setTimeout(()=>procesarDni(inp.value,false),40);
+  };
+  function instalarDniAuto(){
+    const inp=$('dniTrab'); if(!inp || inp.dataset.finalAuto==='1')return; inp.dataset.finalAuto='1';
+    ['input','keyup','change','paste','blur'].forEach(ev=>inp.addEventListener(ev,()=>setTimeout(()=>procesarDni(inp.value,ev!=='input'), ev==='paste'?80:5), true));
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key==='Tab'){procesarDni(inp.value,true); if(e.key==='Enter')e.preventDefault();} }, true);
+    setInterval(()=>{const x=$('dniTrab'); if(x && x.value && onlyDni(x.value).length>=8) procesarDni(x.value,false);},250);
+  }
 
-      let MAESTROS_CACHE={{ maestros_json|safe }};
-      async function cargarMaestrosV10(){
-        if(MAESTROS_CACHE && MAESTROS_CACHE.length){return MAESTROS_CACHE;}
-        try{
-          const r=await fetch('/api/actividades-maestras',{cache:'no-store',credentials:'same-origin'});
-          const j=await r.json();
-          if(j.ok && Array.isArray(j.data) && j.data.length){MAESTROS_CACHE=j.data; return MAESTROS_CACHE;}
-        }catch(e){}
-        MAESTROS_CACHE=[{% for l in labores %}{desc_actividad:{{l.grupo|tojson}},desc_labor:{{l.subgrupo|tojson}},desc_consumidor:{{l.labor|tojson}},cod_actividad:'',cod_labor:'',cod_consumidor:''},{% endfor %}];
-        return MAESTROS_CACHE;
-      }
-      let MAESTROS_DET=MAESTROS_CACHE;
-      function _uniq(a){return [...new Set(a.filter(Boolean))].sort();}
-      function _fillDL(id, arr){const dl=document.getElementById(id); if(!dl)return; dl.innerHTML=''; arr.slice(0,250).forEach(v=>{let o=document.createElement('option'); o.value=v; dl.appendChild(o);});}
-      function _showSuggest(boxId, input, arr, cb){const box=document.getElementById(boxId); if(!box)return; const q=(input.value||'').toUpperCase(); const vals=arr.filter(v=>String(v).toUpperCase().includes(q)).slice(0,12); if(!q||!vals.length){box.style.display='none';box.innerHTML='';return;} box.innerHTML=vals.map(v=>'<div>'+v+'</div>').join(''); box.style.display='block'; [...box.children].forEach(div=>div.onclick=()=>{input.value=div.textContent; box.style.display='none'; cb&&cb();});}
-      async function bindModalMaestros(){
-        MAESTROS_DET = await cargarMaestrosV10();
-        const a=document.getElementById('modalActividad'), l=document.getElementById('modalLaborInput'), c=document.getElementById('modalConsumidor'); if(!a||!l)return;
-        const acts=_uniq(MAESTROS_DET.map(x=>x.desc_actividad||x.cod_actividad)); _fillDL('modal_actividad_list', acts);
-        function norm(v){return String(v||'').toUpperCase().trim();}
-        function rowsA(){const q=norm(a.value);return MAESTROS_DET.filter(x=>!q||norm(x.desc_actividad).includes(q)||norm(x.cod_actividad).includes(q));}
-        function rowsL(){const q=norm(l.value);return rowsA().filter(x=>!q||norm(x.desc_labor).includes(q)||norm(x.cod_labor).includes(q));}
-        function refreshL(){const rows=rowsA(); const vals=_uniq(rows.map(x=>x.desc_labor||x.cod_labor)); _fillDL('modal_labor_list', vals); _showSuggest('modalLaborSuggest',l,vals,refreshC); refreshC();}
-        function refreshC(){const vals=_uniq(rowsL().map(x=>x.desc_consumidor||x.cod_consumidor)); _fillDL('modal_consumidor_list', vals); if(c)_showSuggest('modalConsumidorSuggest',c,vals);}
-        a.oninput=()=>{_showSuggest('modalActividadSuggest',a,acts,()=>{refreshL(); l.focus();});refreshL();};
-        a.onfocus=()=>{_showSuggest('modalActividadSuggest',a,acts,refreshL);};
-        l.oninput=()=>{const vals=_uniq(rowsA().map(x=>x.desc_labor||x.cod_labor)); _showSuggest('modalLaborSuggest',l,vals,()=>{refreshC(); c&&c.focus();}); refreshC();};
-        l.onfocus=()=>{const vals=_uniq(rowsA().map(x=>x.desc_labor||x.cod_labor)); _showSuggest('modalLaborSuggest',l,vals,refreshC);};
-        if(c){c.oninput=refreshC; c.onfocus=refreshC;}
-        refreshL();
-      }
-      function abrirEditarTareo(){alert('Para modificar horarios/campos, usa el botón Registrar trabajador y vuelve a guardar el DNI con los datos corregidos.');}
+  // ================== RELOJ ARRASTRABLE Y HORARIO ==================
+  const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
+  let campoActivo='horaInicioDefault', modo='minute', dragging=false;
+  function toMin(v){const p=String(v||'00:00').split(':');return (parseInt(p[0]||0,10)*60)+(parseInt(p[1]||0,10));}
+  function horasNetas(hi,hf,ri,rf){
+    let a=toMin(hi), b=toMin(hf); if(b<=a)b+=1440; let total=b-a;
+    if(ri&&rf){let c=toMin(ri), d=toMin(rf); if(d<=c)d+=1440; if(b>1440&&c<a){c+=1440;d+=1440;} total-=Math.max(0,Math.min(b,d)-Math.max(a,c));}
+    return (Math.max(0,total)/60).toFixed(2);
+  }
+  function sincHorario(){
+    const hi=$('horaInicioDefault')?.value||'06:30', hf=$('horaFinDefault')?.value||'16:30', ri=$('refInicioDefault')?.value||'12:00', rf=$('refFinDefault')?.value||'13:00';
+    [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{const e=$(id); if(e)e.value=v;});
+    const h=horasNetas(hi,hf,ri,rf); const ht=$('horasTrab'); if(ht)ht.value=h;
+    const box=$('horarioActivoTxt'); if(box)box.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+h+'. Se edita desde el icono de reloj del módulo Trabajadores.';
+  }
+  function clockFace(){const m=$('modalHora');return m?m.querySelector('.clock-face'):null;}
+  function activeInput(){return $(campoActivo)||$('horaInicioDefault');}
+  function point(ev){return (ev.touches&&ev.touches[0])||(ev.changedTouches&&ev.changedTouches[0])||ev;}
+  function ensureClockControls(){
+    const f=clockFace(); if(!f)return;
+    if(!$('clockPickFields')){
+      const pills=document.createElement('div'); pills.id='clockPickFields'; pills.className='clock-field-pills';
+      pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button>';
+      f.insertAdjacentElement('afterend',pills);
+      const modes=document.createElement('div'); modes.id='clockPickMode'; modes.className='clock-mode';
+      modes.innerHTML='<button type="button" data-mode="minute" class="active">MIN</button><button type="button" data-mode="hour">HORA</button>';
+      pills.insertAdjacentElement('afterend',modes);
+    }
+  }
+  function pintarReloj(){
+    const f=clockFace(), input=activeInput(); if(!f||!input)return;
+    const hand=f.querySelector('.clock-hand'), bubble=f.querySelector('.clock-bubble');
+    let [hh,mm]=String(input.value||'00:00').split(':').map(x=>parseInt(x||0,10));
+    let deg=(modo==='hour')?((hh%12)*30):(mm*6), visual=deg-90;
+    if(hand)hand.style.transform='rotate('+visual+'deg)';
+    if(bubble){
+      bubble.textContent=pad(modo==='hour'?hh:mm);
+      const r=68, rad=visual*Math.PI/180, cx=90, cy=90;
+      bubble.style.left=(cx+Math.cos(rad)*r-22)+'px'; bubble.style.top=(cy+Math.sin(rad)*r-22)+'px'; bubble.style.right='auto';
+    }
+    const pills=$('clockPickFields'); if(pills)pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===campoActivo));
+    const modes=$('clockPickMode'); if(modes)modes.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===modo));
+  }
+  function moverReloj(ev){
+    const f=clockFace(), input=activeInput(); if(!f||!input)return;
+    const e=point(ev), r=f.getBoundingClientRect();
+    let deg=Math.atan2(e.clientY-(r.top+r.height/2), e.clientX-(r.left+r.width/2))*180/Math.PI+90; if(deg<0)deg+=360;
+    let [hh,mm]=String(input.value||'00:00').split(':').map(x=>parseInt(x||0,10));
+    if(modo==='hour'){
+      let h=Math.round(deg/30)%12; if(h===0)h=12; if(hh>=12&&h<12)h+=12; if(hh<12&&h===12)h=0; hh=h;
+    }else{ mm=Math.round(deg/30)*5; if(mm>=60)mm=0; }
+    input.value=pad(hh)+':'+pad(mm); sincHorario(); pintarReloj();
+    if(ev.cancelable!==false)ev.preventDefault();
+  }
+  function instalarReloj(){
+    const f=clockFace(); if(!f)return; ensureClockControls();
+    const pills=$('clockPickFields'); if(pills)pills.querySelectorAll('button').forEach(b=>b.onclick=()=>{campoActivo=b.dataset.target;pintarReloj();});
+    const modes=$('clockPickMode'); if(modes)modes.querySelectorAll('button').forEach(b=>b.onclick=()=>{modo=b.dataset.mode;pintarReloj();});
+    IDS.forEach(id=>{const e=$(id); if(e){e.onfocus=()=>{campoActivo=id;pintarReloj();}; e.onclick=()=>{campoActivo=id;pintarReloj();}; e.oninput=()=>{sincHorario();pintarReloj();};}});
+    if(f.dataset.clockOk!=='1'){
+      f.dataset.clockOk='1';
+      f.addEventListener('pointerdown',e=>{dragging=true;try{f.setPointerCapture(e.pointerId)}catch(_){ }moverReloj(e);});
+      f.addEventListener('pointermove',e=>{if(dragging)moverReloj(e);});
+      f.addEventListener('pointerup',()=>dragging=false); f.addEventListener('pointercancel',()=>dragging=false);
+      f.addEventListener('touchstart',e=>{dragging=true;moverReloj(e);},{passive:false});
+      document.addEventListener('touchmove',e=>{if(dragging)moverReloj(e);},{passive:false}); document.addEventListener('touchend',()=>dragging=false);
+      f.addEventListener('mousedown',e=>{dragging=true;moverReloj(e);}); document.addEventListener('mousemove',e=>{if(dragging)moverReloj(e);}); document.addEventListener('mouseup',()=>dragging=false);
+    }
+    sincHorario(); pintarReloj();
+  }
+  window.aplicarHorarioRegistro=function(){sincHorario();pintarReloj();playOk();};
+  window.abrirEditarTareo=function(){alert('Para modificar horas: icono de reloj → elige campo → arrastra manija → Aplicar al registro.');};
 
-      // Mejora reloj v8: arrastrar/click mueve la manija y actualiza el campo activo en tiempo real.
-      function bindClockV7(){
-        document.querySelectorAll('#modalHora input[type=time]').forEach(inp=>{
-          inp.addEventListener('focus',()=>activeTimeInput=inp);
-          inp.addEventListener('click',()=>activeTimeInput=inp);
-        });
-        const face=document.querySelector('#modalHora .clock-face'); if(!face || face.dataset.v7)return; face.dataset.v7='1';
-        const hand=face.querySelector('.clock-hand'), bubble=face.querySelector('.clock-bubble');
-        function updateFromPointer(ev){
-          const r=face.getBoundingClientRect(); const e=ev.touches?ev.touches[0]:ev;
-          const cx=r.left+r.width/2, cy=r.top+r.height/2;
-          const dx=e.clientX-cx, dy=e.clientY-cy;
-          let deg=Math.atan2(dy,dx)*180/Math.PI + 90; if(deg<0)deg+=360;
-          let minute=Math.round((deg/360)*60/5)*5; if(minute>=60)minute=0;
-          const inp=activeTimeInput || document.getElementById('horaInicioDefault');
-          let [hh]=String(inp.value||'00:00').split(':');
-          inp.value=String(hh).padStart(2,'0')+':'+String(minute).padStart(2,'0');
-          if(hand) hand.style.transform='rotate('+(deg-90)+'deg)';
-          if(bubble) bubble.textContent=String(minute).padStart(2,'0');
-          const map={horaInicioDefault:'horaInicioTrab',horaFinDefault:'horaFinTrab',refInicioDefault:'refInicioTrab',refFinDefault:'refFinTrab'};
-          if(map[inp.id] && document.getElementById(map[inp.id])) document.getElementById(map[inp.id]).value=inp.value;
-          ev.preventDefault();
-        }
-        let dragging=false;
-        face.addEventListener('pointerdown',e=>{dragging=true; face.setPointerCapture && face.setPointerCapture(e.pointerId); updateFromPointer(e);});
-        face.addEventListener('pointermove',e=>{if(dragging)updateFromPointer(e);});
-        face.addEventListener('pointerup',()=>dragging=false);
-        face.addEventListener('pointercancel',()=>dragging=false);
-      }
-      const _oldAbrirRelojPara = abrirRelojPara;
-      abrirRelojPara = function(inp){ activeTimeInput=inp; _oldAbrirRelojPara(inp); setTimeout(bindClockV7,150); };
+  // ================== MAESTROS ACTIVIDAD/LABOR/CONSUMIDOR ==================
+  const uniq=(a)=>[...new Set((a||[]).filter(Boolean))].sort();
+  function norm(v){return String(v||'').toUpperCase().trim();}
+  function fillDL(id,arr){const dl=$(id); if(!dl)return; dl.innerHTML=''; arr.slice(0,300).forEach(v=>{const o=document.createElement('option');o.value=v;dl.appendChild(o);});}
+  function showSuggest(id,input,arr,cb){const box=$(id); if(!box||!input)return; const q=norm(input.value); const vals=arr.filter(v=>norm(v).includes(q)).slice(0,12); if(!q||!vals.length){box.style.display='none';box.innerHTML='';return;} box.innerHTML=vals.map(v=>'<div>'+v+'</div>').join(''); box.style.display='block'; [...box.children].forEach(div=>div.onclick=()=>{input.value=div.textContent;box.style.display='none';cb&&cb();});}
+  function instalarMaestros(){
+    const a=$('modalActividad'), l=$('modalLaborInput'), c=$('modalConsumidor'); if(!a||!l)return;
+    const acts=uniq(MAESTROS_DET.map(x=>x.desc_actividad||x.cod_actividad)); fillDL('modal_actividad_list',acts);
+    const rowsA=()=>{const q=norm(a.value);return MAESTROS_DET.filter(x=>!q||norm(x.desc_actividad).includes(q)||norm(x.cod_actividad).includes(q));};
+    const rowsL=()=>{const q=norm(l.value);return rowsA().filter(x=>!q||norm(x.desc_labor).includes(q)||norm(x.cod_labor).includes(q));};
+    const refreshC=()=>{const vals=uniq(rowsL().map(x=>x.desc_consumidor||x.cod_consumidor)); fillDL('modal_consumidor_list',vals); if(c)showSuggest('modalConsumidorSuggest',c,vals);};
+    const refreshL=()=>{const vals=uniq(rowsA().map(x=>x.desc_labor||x.cod_labor)); fillDL('modal_labor_list',vals); showSuggest('modalLaborSuggest',l,vals,refreshC); refreshC();};
+    a.oninput=()=>{showSuggest('modalActividadSuggest',a,acts,()=>{refreshL();l.focus();});refreshL();}; a.onfocus=()=>showSuggest('modalActividadSuggest',a,acts,refreshL);
+    l.oninput=()=>{const vals=uniq(rowsA().map(x=>x.desc_labor||x.cod_labor));showSuggest('modalLaborSuggest',l,vals,()=>{refreshC();c&&c.focus();});refreshC();}; l.onfocus=()=>{const vals=uniq(rowsA().map(x=>x.desc_labor||x.cod_labor));showSuggest('modalLaborSuggest',l,vals,refreshC);};
+    if(c){c.oninput=refreshC;c.onfocus=refreshC;} refreshL();
+  }
 
-      
-      function bindClockV8(){
-        const face=document.querySelector('#modalHora .clock-face'); if(!face || face.dataset.v8)return; face.dataset.v8='1';
-        const hand=face.querySelector('.clock-hand'), bubble=face.querySelector('.clock-bubble');
-        let mode='minute';
-        let pills=document.createElement('div'); pills.className='clock-field-pills';
-        pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio</button><button type="button" data-target="horaFinDefault">Fin</button><button type="button" data-target="refInicioDefault">Ref. ini</button><button type="button" data-target="refFinDefault">Ref. fin</button>';
-        face.parentNode.insertBefore(pills, face.nextSibling);
-        let modes=document.createElement('div'); modes.className='clock-mode'; modes.innerHTML='<button type="button" class="active" data-mode="minute">MIN</button><button type="button" data-mode="hour">HORA</button>';
-        pills.parentNode.insertBefore(modes, pills.nextSibling);
-        function setActive(id){activeTimeInput=document.getElementById(id); pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===id));}
-        pills.querySelectorAll('button').forEach(b=>b.onclick=()=>setActive(b.dataset.target)); setActive((activeTimeInput&&activeTimeInput.id)||'horaInicioDefault');
-        modes.querySelectorAll('button').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;modes.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));});
-        function syncToRegistro(inp){const map={horaInicioDefault:'horaInicioTrab',horaFinDefault:'horaFinTrab',refInicioDefault:'refInicioTrab',refFinDefault:'refFinTrab'}; if(map[inp.id]&&document.getElementById(map[inp.id]))document.getElementById(map[inp.id]).value=inp.value;}
-        function update(ev){const r=face.getBoundingClientRect(); const e=ev.touches?ev.touches[0]:ev; const cx=r.left+r.width/2, cy=r.top+r.height/2; const dx=e.clientX-cx, dy=e.clientY-cy; let deg=Math.atan2(dy,dx)*180/Math.PI+90; if(deg<0)deg+=360; const inp=activeTimeInput||document.getElementById('horaInicioDefault'); let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||0)); if(mode==='hour'){let hour=Math.round(deg/30)%12; if(hour===0)hour=12; if(hh>=12&&hour<12)hour+=12; if(hh<12&&hour===12)hour=0; hh=hour;}else{mm=Math.round((deg/360)*60/5)*5; if(mm>=60)mm=0;} inp.value=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); if(hand)hand.style.transform='rotate('+(deg-90)+'deg)'; if(bubble)bubble.textContent=mode==='hour'?String(hh).padStart(2,'0'):String(mm).padStart(2,'0'); syncToRegistro(inp); ev.preventDefault();}
-        let drag=false; face.addEventListener('pointerdown',e=>{drag=true;face.setPointerCapture&&face.setPointerCapture(e.pointerId);update(e);}); face.addEventListener('pointermove',e=>{if(drag)update(e);}); face.addEventListener('pointerup',()=>drag=false); face.addEventListener('pointercancel',()=>drag=false);
-      }
-      const _oldOpenClock=abrirRelojPara; abrirRelojPara=function(inp){activeTimeInput=inp; _oldOpenClock(inp); setTimeout(bindClockV8,180);};
+  document.addEventListener('shown.bs.modal',e=>{
+    if(e.target&&e.target.id==='modalRegistro'){instalarDniAuto();sincHorario();const i=$('dniTrab');if(i){setTimeout(()=>i.focus(),80);}}
+    if(e.target&&e.target.id==='modalHora'){setTimeout(instalarReloj,60);}
+    if(e.target&&e.target.id==='modalLabor'){instalarMaestros();}
+  });
+  document.addEventListener('DOMContentLoaded',()=>{instalarDniAuto();instalarReloj();instalarMaestros();});
+  document.addEventListener('submit',e=>{if(e.target&&e.target.id==='frmTrab'){sincHorario(); window.renderQueue();}});
+})();
+</script>
 
-
-      // Detección robusta v9: funciona con digitación, lector USB, QR y pegado.
-      let _dniDetectTimer=null, _dniDetectBusy=false;
-      async function autoDetectarDniInline(el){
-        const inp = el || document.getElementById('dniTrab');
-        const st = document.getElementById('dniStatus');
-        if(!inp) return;
-        const dni = limpiarDni(inp.value);
-        if(dni.length < 8){
-          if(st){st.className='mt-2 field-help'; st.textContent='Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.';}
-          return;
-        }
-        inp.value = dni;
-        clearTimeout(_dniDetectTimer);
-        _dniDetectTimer = setTimeout(()=>detectarDniTrabV9(dni), 60);
-      }
-      async function detectarDniTrabV9(dni){
-        const inp=document.getElementById('dniTrab'), st=document.getElementById('dniStatus');
-        if(!dni) dni=limpiarDni(inp && inp.value);
-        if(!inp || !st || dni.length!==8 || _dniDetectBusy) return;
-        _dniDetectBusy=true;
-        st.className='scan-ok mt-2';
-        st.innerHTML='Buscando DNI <b>'+dni+'</b>...';
-        try{
-          const r=await fetch('/api/trabajador/'+encodeURIComponent(dni), {cache:'no-store', credentials:'same-origin'});
-          const j=await r.json();
-          if(!j.ok){
-            st.className='scan-bad mt-2';
-            st.innerHTML='✕ '+(j.msg||'DNI no encontrado')+' <b>'+dni+'</b>';
-            try{beep();}catch(e){}
-            inp.select();
-            return;
-          }
-          const nombre=(j.trabajador && (j.trabajador.trabajador||j.trabajador.nombres)) || 'TRABAJADOR';
-          if(workerMap.has(dni)){
-            st.className='scan-ok mt-2';
-            st.innerHTML='✓ DNI ya estaba en pre-registro: <b>'+dni+'</b>';
-          }else{
-            workerMap.set(dni, nombre);
-            renderQueue();
-            st.className='scan-ok mt-2';
-            st.innerHTML='✓ Trabajador agregado: <b>'+nombre+'</b> · '+dni;
-          }
-          try{beep();}catch(e){}
-          setTimeout(()=>{inp.value=''; inp.focus();},180);
-        }catch(err){
-          st.className='scan-bad mt-2';
-          st.textContent='Error consultando trabajador. Revisa conexión o sesión.';
-        }finally{
-          setTimeout(()=>{_dniDetectBusy=false;},120);
-        }
-      }
-      // Re-enlaza también al abrir el modal, por si Bootstrap recrea foco/eventos.
-      document.addEventListener('shown.bs.modal', function(e){
-        if(e.target && e.target.id==='modalRegistro'){
-          bindDniAuto();
-          const inp=document.getElementById('dniTrab'); if(inp){inp.focus(); autoDetectarDniInline(inp);}
-        }
-        if(e.target && e.target.id==='modalLabor'){
-          bindModalMaestros();
-          setTimeout(()=>{const a=document.getElementById('modalActividad'); if(a) a.focus();},80);
-        }
-      });
-
-      
-      // ===== FIX FINAL: reloj arrastrable + horarios sincronizados + DNI automático =====
-      function calcHorasNetasJS(hi,hf,ri,rf){
-        const tm=v=>{let [h,m]=String(v||'00:00').split(':').map(x=>parseInt(x||0)); return h*60+m;};
-        let a=tm(hi), b=tm(hf); if(b<=a)b+=1440; let total=Math.max(0,b-a);
-        if(ri&&rf){let c=tm(ri), d=tm(rf); if(d<=c)d+=1440; if(b>1440 && c<a){c+=1440;d+=1440;} total-=Math.max(0, Math.min(b,d)-Math.max(a,c));}
-        return Math.max(0,total/60).toFixed(2);
-      }
-      function sincronizarHorarioUI(){
-        const hi=document.getElementById('horaInicioDefault')?.value||'06:30', hf=document.getElementById('horaFinDefault')?.value||'16:30', ri=document.getElementById('refInicioDefault')?.value||'12:00', rf=document.getElementById('refFinDefault')?.value||'13:00';
-        [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{let el=document.getElementById(id); if(el)el.value=v;});
-        const horas=calcHorasNetasJS(hi,hf,ri,rf); let ht=document.getElementById('horasTrab'); if(ht)ht.value=horas;
-        let box=document.getElementById('horarioActivoTxt'); if(box)box.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+horas+'. Se edita desde el icono de reloj del módulo Trabajadores.';
-      }
-      function aplicarHorarioRegistro(){sincronizarHorarioUI(); try{beep();}catch(e){}}
-      function instalarRelojFinal(){
-        const modal=document.getElementById('modalHora'), face=modal?.querySelector('.clock-face'); if(!face)return;
-        face.dataset.v7=''; face.dataset.v8='';
-        const hand=face.querySelector('.clock-hand'), bubble=face.querySelector('.clock-bubble');
-        if(!modal.querySelector('#clockPickFields')){
-          const pills=document.createElement('div'); pills.id='clockPickFields'; pills.className='clock-field-pills';
-          pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button>';
-          face.insertAdjacentElement('afterend',pills);
-          const modes=document.createElement('div'); modes.id='clockPickMode'; modes.className='clock-mode'; modes.innerHTML='<button type="button" class="active" data-mode="minute">MIN</button><button type="button" data-mode="hour">HORA</button>';
-          pills.insertAdjacentElement('afterend',modes);
-        }
-        const pills=modal.querySelector('#clockPickFields'), modes=modal.querySelector('#clockPickMode'); let mode='minute';
-        function setActive(id){activeTimeInput=document.getElementById(id)||document.getElementById('horaInicioDefault'); pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===id)); pintarDesdeCampo();}
-        function pintarDesdeCampo(){const inp=activeTimeInput||document.getElementById('horaInicioDefault'); let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||0)); let deg=(mode==='hour'?((hh%12)*30):(mm*6)); if(hand)hand.style.transform='rotate('+(deg-90)+'deg)'; if(bubble)bubble.textContent=String(mode==='hour'?hh:mm).padStart(2,'0');}
-        pills.querySelectorAll('button').forEach(b=>b.onclick=()=>setActive(b.dataset.target));
-        modes.querySelectorAll('button').forEach(b=>b.onclick=()=>{mode=b.dataset.mode; modes.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b)); pintarDesdeCampo();});
-        modal.querySelectorAll('input[type=time]').forEach(inp=>{inp.onfocus=()=>setActive(inp.id); inp.onclick=()=>setActive(inp.id); inp.oninput=()=>{sincronizarHorarioUI(); pintarDesdeCampo();};});
-        let dragging=false;
-        function move(ev){const r=face.getBoundingClientRect(), e=ev.touches?ev.touches[0]:ev, cx=r.left+r.width/2, cy=r.top+r.height/2; let deg=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI+90; if(deg<0)deg+=360; const inp=activeTimeInput||document.getElementById('horaInicioDefault'); let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||0)); if(mode==='hour'){let h=Math.round(deg/30)%12; if(h===0)h=12; if(hh>=12&&h<12)h+=12; if(hh<12&&h===12)h=0; hh=h;}else{mm=Math.round((deg/6)/5)*5; if(mm>=60)mm=0;} inp.value=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); if(hand)hand.style.transform='rotate('+(deg-90)+'deg)'; if(bubble)bubble.textContent=String(mode==='hour'?hh:mm).padStart(2,'0'); sincronizarHorarioUI(); ev.preventDefault();}
-        face.onpointerdown=e=>{dragging=true; face.setPointerCapture&&face.setPointerCapture(e.pointerId); move(e);};
-        face.onpointermove=e=>{if(dragging)move(e);}; face.onpointerup=()=>dragging=false; face.onpointercancel=()=>dragging=false;
-        face.ontouchstart=e=>{dragging=true; move(e);}; face.ontouchmove=e=>{if(dragging)move(e);}; face.ontouchend=()=>dragging=false;
-        setActive((activeTimeInput&&activeTimeInput.id)||'horaInicioDefault'); sincronizarHorarioUI();
-      }
-      document.addEventListener('shown.bs.modal', e=>{ if(e.target&&e.target.id==='modalHora'){setTimeout(instalarRelojFinal,80);} if(e.target&&e.target.id==='modalRegistro'){sincronizarHorarioUI(); instalarAutoDniFinalV10(); const inp=document.getElementById('dniTrab'); if(inp){inp.focus(); procesarDniAutomaticoV10(inp.value,true);}} });
-      document.addEventListener('input', e=>{ if(['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'].includes(e.target.id)) sincronizarHorarioUI(); });
-      document.addEventListener('submit', e=>{ if(e.target&&e.target.id==='frmTrab') sincronizarHorarioUI(); });
-
-
-      // ===== FIX RELOJ v11: manija 100% arrastrable con mouse/touch =====
-      (function(){
-        let relojCampoActivo='horaInicioDefault';
-        let relojModo='minute';
-        let arrastrando=false;
-        function pad(n){return String(n).padStart(2,'0')}
-        function inputActivo(){return document.getElementById(relojCampoActivo)||document.getElementById('horaInicioDefault')}
-        function idsTiempo(){return ['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault']}
-        function getModal(){return document.getElementById('modalHora')}
-        function getFace(){const m=getModal(); return m?m.querySelector('.clock-face'):null}
-        function normalizarEvento(ev){return (ev.touches&&ev.touches[0]) || (ev.changedTouches&&ev.changedTouches[0]) || ev}
-        function pintarReloj(){
-          const face=getFace(); if(!face)return;
-          const hand=face.querySelector('.clock-hand'), bubble=face.querySelector('.clock-bubble');
-          const inp=inputActivo(); if(!inp)return;
-          let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||'0',10));
-          let deg = relojModo==='hour' ? ((hh%12)*30) : (mm*6);
-          if(hand) hand.style.transform='rotate('+(deg-90)+'deg)';
-          if(bubble) bubble.textContent = pad(relojModo==='hour'?hh:mm);
-          const pills=document.getElementById('clockPickFields');
-          if(pills) pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===relojCampoActivo));
-          const modes=document.getElementById('clockPickMode');
-          if(modes) modes.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===relojModo));
-        }
-        function moverManija(ev){
-          const face=getFace(); const inp=inputActivo(); if(!face||!inp)return;
-          const e=normalizarEvento(ev); const r=face.getBoundingClientRect();
-          const cx=r.left+r.width/2, cy=r.top+r.height/2;
-          let deg=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI+90; if(deg<0)deg+=360;
-          let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||'0',10));
-          if(relojModo==='hour'){
-            let h=Math.round(deg/30)%12; if(h===0)h=12;
-            if(hh>=12 && h<12) h+=12;
-            if(hh<12 && h===12) h=0;
-            hh=h;
-          }else{
-            mm=Math.round((deg/6)/5)*5; if(mm>=60)mm=0;
-          }
-          inp.value=pad(hh)+':'+pad(mm);
-          sincronizarHorarioUI(); pintarReloj();
-          if(ev.cancelable!==false) ev.preventDefault();
-        }
-        function instalarRelojV11(){
-          const modal=getModal(), face=getFace(); if(!modal||!face||face.dataset.v11==='1')return; face.dataset.v11='1';
-          if(!document.getElementById('clockPickFields')){
-            const pills=document.createElement('div'); pills.id='clockPickFields'; pills.className='clock-field-pills';
-            pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button>';
-            face.insertAdjacentElement('afterend',pills);
-            const modes=document.createElement('div'); modes.id='clockPickMode'; modes.className='clock-mode';
-            modes.innerHTML='<button type="button" class="active" data-mode="minute">MIN</button><button type="button" data-mode="hour">HORA</button>';
-            pills.insertAdjacentElement('afterend',modes);
-          }
-          document.getElementById('clockPickFields').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{relojCampoActivo=b.dataset.target; pintarReloj();}));
-          document.getElementById('clockPickMode').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{relojModo=b.dataset.mode; pintarReloj();}));
-          idsTiempo().forEach(id=>{const inp=document.getElementById(id); if(inp){inp.addEventListener('focus',()=>{relojCampoActivo=id;pintarReloj();}); inp.addEventListener('input',()=>{sincronizarHorarioUI();pintarReloj();});}});
-          face.addEventListener('mousedown',e=>{arrastrando=true;moverManija(e);});
-          document.addEventListener('mousemove',e=>{if(arrastrando)moverManija(e);});
-          document.addEventListener('mouseup',()=>{arrastrando=false;});
-          face.addEventListener('touchstart',e=>{arrastrando=true;moverManija(e);},{passive:false});
-          document.addEventListener('touchmove',e=>{if(arrastrando)moverManija(e);},{passive:false});
-          document.addEventListener('touchend',()=>{arrastrando=false;});
-          face.addEventListener('pointerdown',e=>{arrastrando=true; try{face.setPointerCapture(e.pointerId)}catch(_){ } moverManija(e);});
-          face.addEventListener('pointermove',e=>{if(arrastrando)moverManija(e);});
-          face.addEventListener('pointerup',()=>{arrastrando=false;});
-          pintarReloj(); sincronizarHorarioUI();
-        }
-        window.instalarRelojV11=instalarRelojV11;
-        window.pintarRelojV11=pintarReloj;
-        document.addEventListener('shown.bs.modal', e=>{if(e.target&&e.target.id==='modalHora')setTimeout(instalarRelojV11,50);});
-        document.addEventListener('DOMContentLoaded',()=>setTimeout(instalarRelojV11,200));
-      })();
-
-
-
-
-
-      // ===== FIX FINAL V12: RELOJ REAL ARRASTRABLE Y SINCRONIZADO =====
-      // - Click/arrastre con mouse y táctil sobre la manija/cara del reloj.
-      // - Primero selecciona qué campo llenar: Inicio/Fin trabajo o Inicio/Fin refrigerio.
-      // - Modo MIN cambia minutos de 5 en 5; modo HORA cambia la hora.
-      // - Al aplicar, copia los valores al formulario de Registro de trabajador y recalcula H.NORMAL.
-      (function(){
-        const IDS = ['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
-        let campoActivo = 'horaInicioDefault';
-        let modo = 'minute';
-        let dragging = false;
-        function pad(n){ return String(Number(n)||0).padStart(2,'0'); }
-        function modal(){ return document.getElementById('modalHora'); }
-        function face(){ const m=modal(); return m?m.querySelector('.clock-face'):null; }
-        function inp(id){ return document.getElementById(id); }
-        function activo(){ return inp(campoActivo) || inp('horaInicioDefault'); }
-        function eventPoint(ev){ return (ev.touches&&ev.touches[0]) || (ev.changedTouches&&ev.changedTouches[0]) || ev; }
-        function toMinutes(v){ const p=String(v||'00:00').split(':'); return (parseInt(p[0]||0,10)*60)+(parseInt(p[1]||0,10)); }
-        function calcNetas(hi,hf,ri,rf){
-          let a=toMinutes(hi), b=toMinutes(hf); if(b<=a)b+=1440;
-          let total=b-a;
-          if(ri&&rf){ let c=toMinutes(ri), d=toMinutes(rf); if(d<=c)d+=1440; if(b>1440 && c<a){c+=1440; d+=1440;} total-=Math.max(0, Math.min(b,d)-Math.max(a,c)); }
-          return (Math.max(0,total)/60).toFixed(2);
-        }
-        function sincronizarFinal(){
-          const hi=inp('horaInicioDefault')?.value||'06:30', hf=inp('horaFinDefault')?.value||'16:30', ri=inp('refInicioDefault')?.value||'12:00', rf=inp('refFinDefault')?.value||'13:00';
-          [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{const e=inp(id); if(e)e.value=v;});
-          const horas=calcNetas(hi,hf,ri,rf); const h=inp('horasTrab'); if(h)h.value=horas;
-          const box=inp('horarioActivoTxt'); if(box)box.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+horas+'. Se edita desde el icono de reloj del módulo Trabajadores.';
-        }
-        function ensureControls(){
-          const f=face(); if(!f)return;
-          if(!document.getElementById('clockPickFields')){
-            const pills=document.createElement('div'); pills.id='clockPickFields'; pills.className='clock-field-pills';
-            pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button>';
-            f.insertAdjacentElement('afterend', pills);
-            const modes=document.createElement('div'); modes.id='clockPickMode'; modes.className='clock-mode';
-            modes.innerHTML='<button type="button" data-mode="minute" class="active">MIN</button><button type="button" data-mode="hour">HORA</button>';
-            pills.insertAdjacentElement('afterend', modes);
-          }
-        }
-        function pintar(){
-          const f=face(), input=activo(); if(!f||!input)return;
-          const hand=f.querySelector('.clock-hand'), bubble=f.querySelector('.clock-bubble');
-          let [hh,mm]=String(input.value||'00:00').split(':').map(x=>parseInt(x||0,10));
-          let deg = (modo==='hour') ? ((hh%12)*30) : (mm*6);
-          let visual = deg - 90;
-          if(hand) hand.style.transform='rotate('+visual+'deg)';
-          if(bubble){
-            bubble.textContent = pad(modo==='hour'?hh:mm);
-            const r=68, rad=(visual*Math.PI/180), cx=90, cy=90;
-            bubble.style.left=(cx + Math.cos(rad)*r - 22)+'px';
-            bubble.style.top=(cy + Math.sin(rad)*r - 22)+'px';
-            bubble.style.right='auto';
-          }
-          const pills=document.getElementById('clockPickFields'); if(pills) pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.target===campoActivo));
-          const modes=document.getElementById('clockPickMode'); if(modes) modes.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.mode===modo));
-        }
-        function mover(ev){
-          const f=face(), input=activo(); if(!f||!input)return;
-          const e=eventPoint(ev), r=f.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
-          let deg=Math.atan2(e.clientY-cy, e.clientX-cx)*180/Math.PI + 90; if(deg<0)deg+=360;
-          let [hh,mm]=String(input.value||'00:00').split(':').map(x=>parseInt(x||0,10));
-          if(modo==='hour'){
-            let h=Math.round(deg/30)%12; if(h===0)h=12;
-            // conserva AM/PM según el valor actual del campo
-            if(hh>=12 && h<12) h+=12;
-            if(hh<12 && h===12) h=0;
-            hh=h;
-          }else{
-            mm=Math.round(deg/30)*5; if(mm>=60)mm=0; // salto de 5 minutos
-          }
-          input.value=pad(hh)+':'+pad(mm);
-          sincronizarFinal(); pintar();
-          if(ev.cancelable!==false) ev.preventDefault();
-        }
-        function instalar(){
-          const m=modal(), f=face(); if(!m||!f)return;
-          ensureControls();
-          // Reemplaza listeners antiguos clonando la cara: evita duplicados de parches anteriores.
-          if(f.dataset.v12!=='1'){
-            f.dataset.v12='1';
-            f.addEventListener('pointerdown', e=>{dragging=true; try{f.setPointerCapture(e.pointerId)}catch(_){ } mover(e);});
-            f.addEventListener('pointermove', e=>{if(dragging)mover(e);});
-            f.addEventListener('pointerup', ()=>dragging=false);
-            f.addEventListener('pointercancel', ()=>dragging=false);
-            f.addEventListener('mousedown', e=>{dragging=true; mover(e);});
-            document.addEventListener('mousemove', e=>{if(dragging)mover(e);});
-            document.addEventListener('mouseup', ()=>dragging=false);
-            f.addEventListener('touchstart', e=>{dragging=true; mover(e);},{passive:false});
-            document.addEventListener('touchmove', e=>{if(dragging)mover(e);},{passive:false});
-            document.addEventListener('touchend', ()=>dragging=false);
-          }
-          const pills=document.getElementById('clockPickFields'); if(pills) pills.querySelectorAll('button').forEach(b=>{ b.onclick=()=>{campoActivo=b.dataset.target; pintar();}; });
-          const modes=document.getElementById('clockPickMode'); if(modes) modes.querySelectorAll('button').forEach(b=>{ b.onclick=()=>{modo=b.dataset.mode; pintar();}; });
-          IDS.forEach(id=>{const e=inp(id); if(e){ e.onfocus=()=>{campoActivo=id;pintar();}; e.onclick=()=>{campoActivo=id;pintar();}; e.oninput=()=>{sincronizarFinal();pintar();}; }});
-          sincronizarFinal(); pintar();
-        }
-        window.aplicarHorarioRegistro=function(){ sincronizarFinal(); pintar(); try{beep();}catch(_){ } };
-        window.instalarRelojHorarioFinal=instalar;
-        document.addEventListener('shown.bs.modal', e=>{ if(e.target&&e.target.id==='modalHora') setTimeout(instalar,60); if(e.target&&e.target.id==='modalRegistro') sincronizarFinal(); });
-        document.addEventListener('DOMContentLoaded', ()=>setTimeout(instalar,250));
-        document.addEventListener('submit', e=>{ if(e.target&&e.target.id==='frmTrab') sincronizarFinal(); });
-      })();
-
-
-      // ===== FIX DEFINITIVO DNI v10: reconocimiento automático real =====
-      // Detecta por digitación, lector USB, QR/código de barras, pegado y cambios silenciosos del input.
-      let _dniLastValueV10='';
-      let _dniLastOkV10='';
-      let _dniPollV10=null;
-      function mostrarEstadoDniV10(tipo, html){
-        const st=document.getElementById('dniStatus');
-        if(!st)return;
-        st.className=(tipo==='ok'?'scan-ok mt-2 flash':(tipo==='bad'?'scan-bad mt-2 flash':'mt-2 field-help'));
-        st.innerHTML=html;
-      }
-      async function procesarDniAutomaticoV10(valor, forzar=false){
-        const inp=document.getElementById('dniTrab');
-        const dni=limpiarDni(valor || (inp&&inp.value) || '');
-        if(!inp)return;
-        if(dni.length<8){
-          if(forzar) mostrarEstadoDniV10('help','Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.');
-          return;
-        }
-        inp.value=dni;
-        if(!forzar && dni===_dniLastOkV10)return;
-        _dniLastOkV10=dni;
-        mostrarEstadoDniV10('ok','Buscando DNI <b>'+dni+'</b>...');
-        try{
-          const r=await fetch('/api/trabajador/'+encodeURIComponent(dni), {cache:'no-store', credentials:'same-origin'});
-          let j=null;
-          try{j=await r.json();}catch(e){j={ok:false,msg:'No se pudo leer la respuesta del servidor.'};}
-          if(!j.ok){
-            mostrarEstadoDniV10('bad','✕ '+(j.msg||'DNI no encontrado en base trabajadores')+' <b>'+dni+'</b>');
-            try{beep();}catch(e){}
-            inp.select();
-            return;
-          }
-          const nombre=(j.trabajador&&(j.trabajador.trabajador||j.trabajador.nombres||j.trabajador.nombre))||'TRABAJADOR';
-          if(!workerMap.has(dni)) workerMap.set(dni,nombre);
-          renderQueue();
-          mostrarEstadoDniV10('ok','✓ Reconocido automáticamente: <b>'+nombre+'</b> · '+dni);
-          try{beep();}catch(e){}
-          setTimeout(()=>{inp.value=''; _dniLastValueV10=''; inp.focus();},220);
-        }catch(e){
-          mostrarEstadoDniV10('bad','Error consultando trabajador. Revisa conexión o sesión.');
-        }
-      }
-      function instalarAutoDniFinalV10(){
-        const inp=document.getElementById('dniTrab');
-        if(!inp)return;
-        window.workerMap=workerMap; window.renderQueue=renderQueue; window.autoDetectarDniInline=(el)=>procesarDniAutomaticoV10(el&&el.value,true);
-        ['input','keyup','change','paste','blur'].forEach(ev=>{
-          inp.addEventListener(ev,()=>setTimeout(()=>procesarDniAutomaticoV10(inp.value,true), ev==='paste'?80:10), true);
-        });
-        inp.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key==='Tab'){procesarDniAutomaticoV10(inp.value,true); if(e.key==='Enter')e.preventDefault();}}, true);
-        if(_dniPollV10) clearInterval(_dniPollV10);
-        _dniPollV10=setInterval(()=>{
-          const x=document.getElementById('dniTrab'); if(!x)return;
-          const v=x.value||'';
-          if(v!==_dniLastValueV10){_dniLastValueV10=v; procesarDniAutomaticoV10(v,false);}
-        },180);
-      }
-
-      document.addEventListener('DOMContentLoaded',()=>{bindClock();bindClockV7();bindClockV8();bindDniAuto();instalarAutoDniFinalV10();bindModalMaestros();});
-    </script>
     """
     return render_page(body, h=h, tab=tab, tareos=tareos, lecturas=lecturas, labores=labores, registros=registros, horas_total=horas_total, rend_total=rend_total, maestros_json=js_master_options(get_actividades_maestras()))
 
