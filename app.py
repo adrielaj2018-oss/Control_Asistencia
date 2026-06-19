@@ -213,7 +213,7 @@ BASE_HTML = r"""
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
 :root{--verde:#2f773b;--verde2:#3f8748;--verde3:#276a33;--verdeClaro:#eaf5eb;--line:#e8ece8;--txt:#2d5b35;--gris:#6b7d6d;--amarillo:#ffc20e}
-*{box-sizing:border-box}body{margin:0;background:#fff;font-family:Inter,Segoe UI,Arial,sans-serif;color:#21472a}.app-bg{min-height:100vh;background:linear-gradient(180deg,#fff 0%,#fff 62%,#fbfbfb 100%)}.shell{width:min(1120px,100%);margin:0 auto;padding:18px}.phone-wrap{max-width:430px;margin:0 auto}.desktop-grid{display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start}.home-desktop-list .worker-card{margin:10px 0}.home-desktop-list{max-width:640px;margin:0 auto}.header-title{text-align:center;color:#166534;font-family:Georgia,serif;font-weight:900;letter-spacing:.5px;font-size:23px;line-height:1.13;margin:4px 0 22px;text-transform:uppercase}.green-hero{background:var(--verde);border-radius:0 0 18px 18px;min-height:145px;padding:12px 16px 22px;color:white;text-align:center;position:relative;overflow:visible}.tareo-hero{min-height:124px!important;padding-bottom:42px!important}.tareo-toolbar{margin:12px 12px 8px!important;position:relative;z-index:4}.tareo-list-page .worker-card:first-of-type{margin-top:12px}.back-mini{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:999px;color:var(--verde);text-decoration:none;font-size:24px}.green-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800}.avatar{width:78px;height:78px;border-radius:999px;background:white;color:var(--verde);display:grid;place-items:center;margin:10px auto 2px;font-size:43px;box-shadow:0 8px 20px rgba(0,0,0,.13)}.login-name{font-size:11px;font-weight:800}.white-input{height:36px;background:white;border-radius:10px;box-shadow:0 5px 13px rgba(0,0,0,.18);border:0}.floating-card{background:white;border-radius:10px;box-shadow:0 8px 18px rgba(0,0,0,.15);padding:12px}.tile{width:74px;height:70px;border-radius:8px;background:white;box-shadow:0 7px 17px rgba(0,0,0,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--verde);font-weight:900;font-size:10px;text-align:center}.tile i{font-size:26px;margin-bottom:5px}.bottom-sync{position:fixed;left:10px;bottom:8px;color:#317a3e;font-size:10px;font-weight:700}.bottom-out{position:fixed;right:14px;bottom:8px;color:#c84c4c;font-size:20px}.tab-main{display:flex;gap:0;background:#fafafa;padding-left:0;border-top:4px solid #d7d7d7}.tab-main a{flex:1;text-align:center;text-decoration:none;color:#508557;font-weight:900;font-size:13px;padding:14px 8px;border-radius:7px 7px 0 0;background:#fff}.tab-main a.active{background:var(--verde);color:white;box-shadow:0 3px 7px rgba(0,0,0,.18)}.subtabs{display:flex;background:#fff}.subtabs a{flex:1;text-align:center;padding:13px 5px;text-decoration:none;color:#4b8a54;font-weight:900;font-size:12px}.subtabs a.active{background:var(--verde);color:white}.panel-green{background:var(--verde);color:white;text-align:center;padding:21px 12px 42px}.panel-green i{font-size:38px}.panel-green h4{font-size:11px;font-weight:900;margin:5px 0 0}.toolstrip{background:white;margin:-25px 9px 5px;border-radius:9px;min-height:49px;box-shadow:0 5px 13px rgba(0,0,0,.22);display:flex;align-items:center;gap:20px;padding:7px 14px;color:var(--verde);font-size:24px}.toolstrip button,.toolstrip a{border:0;background:transparent;color:var(--verde);font-size:24px;text-decoration:none}.info-bar{margin:0 9px;background:var(--verde);color:white;border-radius:2px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 22px;align-items:center;font-size:10px;font-weight:900;height:23px}.info-bar div{text-align:center;border-right:1px solid rgba(255,255,255,.28)}.worker-card{background:white;margin:10px 12px;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,.20);padding:11px 13px;color:#397443;position:relative}.worker-title{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:9px;font-weight:900;text-transform:uppercase}.worker-title b{font-size:10px;color:var(--verde)}.worker-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:7px}.worker-grid label{font-size:8px;font-weight:900;color:#6c8a6f;margin-bottom:1px}.mini-input{height:25px;border:1px solid #9ebaa0;border-radius:3px;font-size:10px;padding:3px 5px;width:100%;font-weight:800;color:#315f39}.mini-badge{border-radius:3px;color:white;font-size:8px;font-weight:900;text-align:center;padding:4px 3px;text-transform:uppercase}.bg-y{background:var(--amarillo)!important;color:white}.bg-g{background:#42b852!important}.person-dot{width:42px;height:42px;border-radius:999px;background:#378145;color:white;display:grid;place-items:center;font-size:26px;float:left;margin-right:9px}.small-label{font-size:8px;color:#79937b;font-weight:900}.small-value{font-size:9px;color:#466a49;font-weight:900}.leaf{width:120px;height:120px;border-radius:70% 30% 70% 30%;background:linear-gradient(135deg,#ffd8bd,#eef4c7,#cbd9b6);opacity:.72;margin:20px auto 0;transform:rotate(-20deg)}.card-pro{background:white;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 20px rgba(0,0,0,.10)}.btn-green{background:var(--verde);border-color:var(--verde);color:white;font-weight:900;border-radius:9px}.btn-green:hover{background:var(--verde3);color:white}.form-control,.form-select{border-radius:9px;border:1px solid #dfe7df;font-weight:700;font-size:13px}.form-label{font-size:12px;font-weight:900;color:#3e7545}.page-card{border-radius:13px;overflow:hidden;border:1px solid #e5e7e5;background:white}.list-table th{font-size:11px;color:#497550}.list-table td{font-size:12px;vertical-align:middle}.status-pill{display:inline-block;background:#39b54a;color:white;border-radius:4px;padding:4px 8px;font-size:9px;font-weight:900}.top-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px;position:relative;z-index:5}.top-actions .tile{width:82px;height:76px}.login-page .shell{padding:0}.login-form{margin:-7px auto 0;width:92%;max-width:360px}.login-form .floating-card{padding:13px 14px 18px}.alert{border-radius:12px;font-size:13px}.desk-panel{display:block}.mobile-only{display:none}.clock-box{width:116px;height:116px;border:5px solid var(--verde);border-radius:999px;margin:8px auto;display:grid;place-items:center;color:var(--verde);font-weight:900;background:#fff;box-shadow:0 4px 14px rgba(47,119,59,.18)}.clock-box i{font-size:38px}.scan-box{border:2px dashed #8dbf93;border-radius:12px;padding:10px;background:#f8fff9}.toolstrip .hint{font-size:9px;font-weight:900;color:#2f773b;margin-left:-18px;margin-right:0}.splash-card{height:94vh;max-height:760px;background:#23773f;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;position:relative}.splash-logo{width:145px;height:145px;border-radius:999px;background:#fff;border:6px solid #92bd33;display:grid;place-items:center;color:#23773f;font-size:66px;box-shadow:0 3px 10px rgba(0,0,0,.22)}.splash-title{font-weight:900;margin-top:18px;letter-spacing:.5px}.splash-foot{position:absolute;bottom:26px;text-align:center;font-size:11px;color:#d9f2df;font-weight:700}.role-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}.role-toggle label{border:1px solid #dce7dc;border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:900;color:#2f773b}.role-toggle input{display:none}.role-toggle input:checked+span{background:#2f773b;color:white;border-radius:7px;padding:7px 9px;display:block}.bottom-nav{position:sticky;bottom:0;background:white;border-top:1px solid #e8ece8;display:flex;justify-content:space-around;padding:7px 0;color:#477b4d;font-size:10px;font-weight:800}.bottom-nav a{text-decoration:none;color:#477b4d;text-align:center}.bottom-nav i{display:block;font-size:17px}.copy-list{max-height:260px;overflow:auto;border:1px solid #e5ede5;border-radius:9px;padding:8px;background:#fbfffb}.clock-face{width:180px;height:180px;border-radius:999px;background:#e7e0ef;margin:8px auto;position:relative;display:grid;place-items:center;color:#5d44aa;touch-action:none;cursor:pointer;user-select:none}.clock-hand{width:65px;height:3px;background:#6b4eb8;position:absolute;transform-origin:left center;transform:rotate(-35deg);left:90px;top:90px}.clock-dot{width:12px;height:12px;border-radius:999px;background:#6b4eb8;position:absolute;left:84px;top:84px}.clock-num{position:absolute;font-size:12px;color:#37303c}.clock-bubble{position:absolute;right:20px;top:50px;background:#6b4eb8;color:white;border-radius:999px;padding:9px;font-weight:900}.field-required{box-shadow:inset 4px 0 0 var(--verde)}.big-plus{font-size:34px!important;line-height:1}.big-plus .bi-plus{font-size:22px!important;margin-left:-12px;font-weight:900}.labor-card-compact{padding:13px 16px}.labor-card-compact .worker-title{font-size:8px}.labor-card-compact .worker-title b{font-size:9px;line-height:1.15}.labor-card-compact .labor-main{font-size:15px!important;line-height:1.1;color:#146c35}.labor-card-compact .resp-main{font-size:13px!important;line-height:1.1;color:#146c35}.worker-queue{border:1px dashed #8cc79b;border-radius:12px;background:#f7fff8;padding:9px;margin-top:10px;max-height:155px;overflow:auto}.queue-item{display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid #e2f3e5;padding:6px 0;font-size:12px}.queue-item:last-child{border-bottom:0}.scan-ok{background:#d1fae5;border:1px solid #86efac;color:#166534;border-radius:10px;padding:8px;font-size:12px;font-weight:800}.scan-bad{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;border-radius:10px;padding:8px;font-size:12px;font-weight:800}.time-click{cursor:pointer;background:#fbfffb}.time-click:focus{outline:2px solid #2f773b}.report-wrap{max-width:540px;margin:0 auto}.config-header{display:flex;align-items:center;gap:8px;justify-content:center;position:relative}.config-header .back-mini{position:absolute;left:0}.btn-plus-fab{display:inline-flex!important;align-items:center;gap:2px}.btn-plus-fab i:first-child{font-size:30px!important}.btn-plus-fab i:last-child{font-size:20px!important;margin-left:-12px;margin-top:12px}.field-help{font-size:10px;color:#5f7d65;font-weight:800} .swipe-wrap{position:relative;margin:10px 12px;overflow:hidden;border-radius:12px}.swipe-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:stretch;transform:translateX(100%);transition:.22s ease;z-index:1}.swipe-wrap.show-actions .swipe-actions{transform:translateX(0)}.swipe-actions a{display:flex;align-items:center;justify-content:center;min-width:74px;color:white;text-decoration:none;font-size:11px;font-weight:900}.act-edit{background:#2563eb}.act-send{background:#16a34a}.act-del{background:#dc2626}.swipe-wrap .worker-card{margin:0;transition:.22s ease;position:relative;z-index:2}.swipe-wrap.show-actions .worker-card{transform:translateX(-222px)}.locked-input{background:#f8fff9!important;cursor:pointer}.edit-hint{font-size:9px;color:#2f773b;font-weight:900}.clock-field-pills{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 10px}.clock-field-pills button{border:1px solid #cfe6d4;background:#fff;border-radius:9px;padding:7px;font-size:11px;font-weight:900;color:#2f773b}.clock-field-pills button.active{background:#2f773b;color:white}.clock-mode{display:flex;justify-content:center;gap:8px;margin-top:4px}.clock-mode button{border:0;border-radius:999px;padding:5px 12px;font-weight:900;background:#e7e0ef;color:#5d44aa}.clock-mode button.active{background:#6b4eb8;color:white}.modal-suggest{max-height:125px;overflow:auto;border:1px solid #e5ede5;border-radius:8px;margin-top:-5px;margin-bottom:8px;background:#fbfffb;display:none}.modal-suggest div{padding:8px 10px;border-bottom:1px solid #edf5ee;font-size:12px;font-weight:800;cursor:pointer}.modal-suggest div:hover{background:#eaf5eb}.queue-title{font-size:11px;font-weight:900;color:#166534;margin-top:8px}.scan-ok.flash{animation:flashOk .5s ease}@keyframes flashOk{0%{transform:scale(.98)}50%{transform:scale(1.02)}100%{transform:scale(1)}} 
+*{box-sizing:border-box}body{margin:0;background:#fff;font-family:Inter,Segoe UI,Arial,sans-serif;color:#21472a}.app-bg{min-height:100vh;background:linear-gradient(180deg,#fff 0%,#fff 62%,#fbfbfb 100%)}.shell{width:min(1120px,100%);margin:0 auto;padding:18px}.phone-wrap{max-width:430px;margin:0 auto}.desktop-grid{display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start}.home-desktop-list .worker-card{margin:10px 0}.home-desktop-list{max-width:640px;margin:0 auto}.header-title{text-align:center;color:#166534;font-family:Georgia,serif;font-weight:900;letter-spacing:.5px;font-size:23px;line-height:1.13;margin:4px 0 22px;text-transform:uppercase}.green-hero{background:var(--verde);border-radius:0 0 18px 18px;min-height:145px;padding:12px 16px 22px;color:white;text-align:center;position:relative;overflow:visible}.tareo-hero{min-height:124px!important;padding-bottom:42px!important}.tareo-toolbar{margin:12px 12px 8px!important;position:relative;z-index:4}.tareo-list-page .worker-card:first-of-type{margin-top:12px}.back-mini{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:999px;color:var(--verde);text-decoration:none;font-size:24px}.green-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800}.avatar{width:78px;height:78px;border-radius:999px;background:white;color:var(--verde);display:grid;place-items:center;margin:10px auto 2px;font-size:43px;box-shadow:0 8px 20px rgba(0,0,0,.13)}.login-name{font-size:11px;font-weight:800}.white-input{height:36px;background:white;border-radius:10px;box-shadow:0 5px 13px rgba(0,0,0,.18);border:0}.floating-card{background:white;border-radius:10px;box-shadow:0 8px 18px rgba(0,0,0,.15);padding:12px}.tile{width:74px;height:70px;border-radius:8px;background:white;box-shadow:0 7px 17px rgba(0,0,0,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--verde);font-weight:900;font-size:10px;text-align:center}.tile i{font-size:26px;margin-bottom:5px}.bottom-sync{position:fixed;left:10px;bottom:8px;color:#317a3e;font-size:10px;font-weight:700}.bottom-out{position:fixed;right:14px;bottom:8px;color:#c84c4c;font-size:20px}.tab-main{display:flex;gap:0;background:#fafafa;padding-left:0;border-top:4px solid #d7d7d7}.tab-main a{flex:1;text-align:center;text-decoration:none;color:#508557;font-weight:900;font-size:13px;padding:14px 8px;border-radius:7px 7px 0 0;background:#fff}.tab-main a.active{background:var(--verde);color:white;box-shadow:0 3px 7px rgba(0,0,0,.18)}.subtabs{display:flex;background:#fff}.subtabs a{flex:1;text-align:center;padding:13px 5px;text-decoration:none;color:#4b8a54;font-weight:900;font-size:12px}.subtabs a.active{background:var(--verde);color:white}.panel-green{background:var(--verde);color:white;text-align:center;padding:21px 12px 42px}.panel-green i{font-size:38px}.panel-green h4{font-size:11px;font-weight:900;margin:5px 0 0}.toolstrip{background:white;margin:-25px 9px 5px;border-radius:9px;min-height:49px;box-shadow:0 5px 13px rgba(0,0,0,.22);display:flex;align-items:center;gap:20px;padding:7px 14px;color:var(--verde);font-size:24px}.toolstrip button,.toolstrip a{border:0;background:transparent;color:var(--verde);font-size:24px;text-decoration:none}.info-bar{margin:0 9px;background:var(--verde);color:white;border-radius:2px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 22px;align-items:center;font-size:10px;font-weight:900;height:23px}.info-bar div{text-align:center;border-right:1px solid rgba(255,255,255,.28)}.worker-card{background:white;margin:10px 12px;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,.20);padding:11px 13px;color:#397443;position:relative}.worker-title{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:9px;font-weight:900;text-transform:uppercase}.worker-title b{font-size:10px;color:var(--verde)}.worker-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:7px}.worker-grid label{font-size:8px;font-weight:900;color:#6c8a6f;margin-bottom:1px}.mini-input{height:25px;border:1px solid #9ebaa0;border-radius:3px;font-size:10px;padding:3px 5px;width:100%;font-weight:800;color:#315f39}.mini-badge{border-radius:3px;color:white;font-size:8px;font-weight:900;text-align:center;padding:4px 3px;text-transform:uppercase}.bg-y{background:var(--amarillo)!important;color:white}.bg-g{background:#42b852!important}.person-dot{width:42px;height:42px;border-radius:999px;background:#378145;color:white;display:grid;place-items:center;font-size:26px;float:left;margin-right:9px}.small-label{font-size:8px;color:#79937b;font-weight:900}.small-value{font-size:9px;color:#466a49;font-weight:900}.leaf{width:120px;height:120px;border-radius:70% 30% 70% 30%;background:linear-gradient(135deg,#ffd8bd,#eef4c7,#cbd9b6);opacity:.72;margin:20px auto 0;transform:rotate(-20deg)}.card-pro{background:white;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 20px rgba(0,0,0,.10)}.btn-green{background:var(--verde);border-color:var(--verde);color:white;font-weight:900;border-radius:9px}.btn-green:hover{background:var(--verde3);color:white}.form-control,.form-select{border-radius:9px;border:1px solid #dfe7df;font-weight:700;font-size:13px}.form-label{font-size:12px;font-weight:900;color:#3e7545}.page-card{border-radius:13px;overflow:hidden;border:1px solid #e5e7e5;background:white}.list-table th{font-size:11px;color:#497550}.list-table td{font-size:12px;vertical-align:middle}.status-pill{display:inline-block;background:#39b54a;color:white;border-radius:4px;padding:4px 8px;font-size:9px;font-weight:900}.top-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px;position:relative;z-index:5}.top-actions .tile{width:82px;height:76px}.login-page .shell{padding:0}.login-form{margin:-7px auto 0;width:92%;max-width:360px}.login-form .floating-card{padding:13px 14px 18px}.alert{border-radius:12px;font-size:13px}.desk-panel{display:block}.mobile-only{display:none}.clock-box{width:116px;height:116px;border:5px solid var(--verde);border-radius:999px;margin:8px auto;display:grid;place-items:center;color:var(--verde);font-weight:900;background:#fff;box-shadow:0 4px 14px rgba(47,119,59,.18)}.clock-box i{font-size:38px}.scan-box{border:2px dashed #8dbf93;border-radius:12px;padding:10px;background:#f8fff9}.toolstrip .hint{font-size:9px;font-weight:900;color:#2f773b;margin-left:-18px;margin-right:0}.splash-card{height:94vh;max-height:760px;background:#23773f;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;position:relative}.splash-logo{width:145px;height:145px;border-radius:999px;background:#fff;border:6px solid #92bd33;display:grid;place-items:center;color:#23773f;font-size:66px;box-shadow:0 3px 10px rgba(0,0,0,.22)}.splash-title{font-weight:900;margin-top:18px;letter-spacing:.5px}.splash-foot{position:absolute;bottom:26px;text-align:center;font-size:11px;color:#d9f2df;font-weight:700}.role-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}.role-toggle label{border:1px solid #dce7dc;border-radius:9px;padding:9px;text-align:center;font-size:12px;font-weight:900;color:#2f773b}.role-toggle input{display:none}.role-toggle input:checked+span{background:#2f773b;color:white;border-radius:7px;padding:7px 9px;display:block}.bottom-nav{position:sticky;bottom:0;background:white;border-top:1px solid #e8ece8;display:flex;justify-content:space-around;padding:7px 0;color:#477b4d;font-size:10px;font-weight:800}.bottom-nav a{text-decoration:none;color:#477b4d;text-align:center}.bottom-nav i{display:block;font-size:17px}.copy-list{max-height:260px;overflow:auto;border:1px solid #e5ede5;border-radius:9px;padding:8px;background:#fbfffb}.clock-face{width:180px;height:180px;border-radius:999px;background:#e7e0ef;margin:8px auto;position:relative;display:grid;place-items:center;color:#5d44aa;touch-action:none;cursor:pointer;user-select:none}.clock-hand{width:65px;height:4px;background:#6b4eb8;position:absolute;transform-origin:left center;transform:rotate(-35deg);left:90px;top:90px;pointer-events:none}.clock-hand:after{content:'';position:absolute;right:-13px;top:-13px;width:30px;height:30px;border-radius:999px;background:#6b4eb8;box-shadow:0 2px 8px rgba(0,0,0,.18)}.clock-dot{width:12px;height:12px;border-radius:999px;background:#6b4eb8;position:absolute;left:84px;top:84px}.clock-num{position:absolute;font-size:12px;color:#37303c}.clock-bubble{position:absolute;right:20px;top:50px;background:#6b4eb8;color:white;border-radius:999px;padding:9px;font-weight:900}.field-required{box-shadow:inset 4px 0 0 var(--verde)}.big-plus{font-size:34px!important;line-height:1}.big-plus .bi-plus{font-size:22px!important;margin-left:-12px;font-weight:900}.labor-card-compact{padding:13px 16px}.labor-card-compact .worker-title{font-size:8px}.labor-card-compact .worker-title b{font-size:9px;line-height:1.15}.labor-card-compact .labor-main{font-size:15px!important;line-height:1.1;color:#146c35}.labor-card-compact .resp-main{font-size:13px!important;line-height:1.1;color:#146c35}.worker-queue{border:1px dashed #8cc79b;border-radius:12px;background:#f7fff8;padding:9px;margin-top:10px;max-height:155px;overflow:auto}.queue-item{display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid #e2f3e5;padding:6px 0;font-size:12px}.queue-item:last-child{border-bottom:0}.scan-ok{background:#d1fae5;border:1px solid #86efac;color:#166534;border-radius:10px;padding:8px;font-size:12px;font-weight:800}.scan-bad{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;border-radius:10px;padding:8px;font-size:12px;font-weight:800}.time-click{cursor:pointer;background:#fbfffb}.time-click:focus{outline:2px solid #2f773b}.report-wrap{max-width:540px;margin:0 auto}.config-header{display:flex;align-items:center;gap:8px;justify-content:center;position:relative}.config-header .back-mini{position:absolute;left:0}.btn-plus-fab{display:inline-flex!important;align-items:center;gap:2px}.btn-plus-fab i:first-child{font-size:30px!important}.btn-plus-fab i:last-child{font-size:20px!important;margin-left:-12px;margin-top:12px}.field-help{font-size:10px;color:#5f7d65;font-weight:800} .swipe-wrap{position:relative;margin:10px 12px;overflow:hidden;border-radius:12px}.swipe-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:stretch;transform:translateX(100%);transition:.22s ease;z-index:1}.swipe-wrap.show-actions .swipe-actions{transform:translateX(0)}.swipe-actions a{display:flex;align-items:center;justify-content:center;min-width:74px;color:white;text-decoration:none;font-size:11px;font-weight:900}.act-edit{background:#2563eb}.act-send{background:#16a34a}.act-del{background:#dc2626}.swipe-wrap .worker-card{margin:0;transition:.22s ease;position:relative;z-index:2}.swipe-wrap.show-actions .worker-card{transform:translateX(-222px)}.locked-input{background:#f8fff9!important;cursor:pointer}.edit-hint{font-size:9px;color:#2f773b;font-weight:900}.clock-field-pills{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 10px}.clock-field-pills button{border:1px solid #cfe6d4;background:#fff;border-radius:9px;padding:7px;font-size:11px;font-weight:900;color:#2f773b}.clock-field-pills button.active{background:#2f773b;color:white}.clock-mode{display:flex;justify-content:center;gap:8px;margin-top:4px}.clock-mode button{border:0;border-radius:999px;padding:5px 12px;font-weight:900;background:#e7e0ef;color:#5d44aa}.clock-mode button.active{background:#6b4eb8;color:white}.modal-suggest{max-height:125px;overflow:auto;border:1px solid #e5ede5;border-radius:8px;margin-top:-5px;margin-bottom:8px;background:#fbfffb;display:none}.modal-suggest div{padding:8px 10px;border-bottom:1px solid #edf5ee;font-size:12px;font-weight:800;cursor:pointer}.modal-suggest div:hover{background:#eaf5eb}.queue-title{font-size:11px;font-weight:900;color:#166534;margin-top:8px}.scan-ok.flash{animation:flashOk .5s ease}@keyframes flashOk{0%{transform:scale(.98)}50%{transform:scale(1.02)}100%{transform:scale(1)}} 
 @media(max-width:860px){.shell{padding:0}.desktop-grid{display:block}.desk-panel{display:none}.mobile-only{display:block}.header-title{font-size:17px;margin:16px 7px 20px}.page-card{border-radius:0;border-left:0;border-right:0}.phone-wrap{max-width:100%}.green-hero{border-radius:0}.worker-card{margin-left:9px;margin-right:9px}.toolstrip{gap:15px}.info-bar{font-size:8.5px}.bottom-sync,.bottom-out{position:fixed}.desktop-pad{padding:0 0 28px}.tab-main a,.subtabs a{font-size:11px}.worker-grid{gap:5px}.floating-card{border-radius:9px}.top-actions .tile{width:72px;height:70px}}
 </style></head><body class="{{ 'login-page' if not session.get('usuario') else '' }}"><div class="app-bg"><main class="shell">
 {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="phone-wrap mt-2">{% for cat,msg in messages %}<div class="alert alert-{{cat}} shadow-sm">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
@@ -679,11 +679,252 @@ def detalle_hoja(hoja_id):
         face.ontouchstart=e=>{dragging=true; move(e);}; face.ontouchmove=e=>{if(dragging)move(e);}; face.ontouchend=()=>dragging=false;
         setActive((activeTimeInput&&activeTimeInput.id)||'horaInicioDefault'); sincronizarHorarioUI();
       }
-      document.addEventListener('shown.bs.modal', e=>{ if(e.target&&e.target.id==='modalHora'){setTimeout(instalarRelojFinal,80);} if(e.target&&e.target.id==='modalRegistro'){sincronizarHorarioUI(); const inp=document.getElementById('dniTrab'); if(inp){inp.focus();}} });
+      document.addEventListener('shown.bs.modal', e=>{ if(e.target&&e.target.id==='modalHora'){setTimeout(instalarRelojFinal,80);} if(e.target&&e.target.id==='modalRegistro'){sincronizarHorarioUI(); instalarAutoDniFinalV10(); const inp=document.getElementById('dniTrab'); if(inp){inp.focus(); procesarDniAutomaticoV10(inp.value,true);}} });
       document.addEventListener('input', e=>{ if(['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'].includes(e.target.id)) sincronizarHorarioUI(); });
       document.addEventListener('submit', e=>{ if(e.target&&e.target.id==='frmTrab') sincronizarHorarioUI(); });
 
-      document.addEventListener('DOMContentLoaded',()=>{bindClock();bindClockV7();bindClockV8();bindDniAuto();bindModalMaestros();});
+
+      // ===== FIX RELOJ v11: manija 100% arrastrable con mouse/touch =====
+      (function(){
+        let relojCampoActivo='horaInicioDefault';
+        let relojModo='minute';
+        let arrastrando=false;
+        function pad(n){return String(n).padStart(2,'0')}
+        function inputActivo(){return document.getElementById(relojCampoActivo)||document.getElementById('horaInicioDefault')}
+        function idsTiempo(){return ['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault']}
+        function getModal(){return document.getElementById('modalHora')}
+        function getFace(){const m=getModal(); return m?m.querySelector('.clock-face'):null}
+        function normalizarEvento(ev){return (ev.touches&&ev.touches[0]) || (ev.changedTouches&&ev.changedTouches[0]) || ev}
+        function pintarReloj(){
+          const face=getFace(); if(!face)return;
+          const hand=face.querySelector('.clock-hand'), bubble=face.querySelector('.clock-bubble');
+          const inp=inputActivo(); if(!inp)return;
+          let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||'0',10));
+          let deg = relojModo==='hour' ? ((hh%12)*30) : (mm*6);
+          if(hand) hand.style.transform='rotate('+(deg-90)+'deg)';
+          if(bubble) bubble.textContent = pad(relojModo==='hour'?hh:mm);
+          const pills=document.getElementById('clockPickFields');
+          if(pills) pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===relojCampoActivo));
+          const modes=document.getElementById('clockPickMode');
+          if(modes) modes.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===relojModo));
+        }
+        function moverManija(ev){
+          const face=getFace(); const inp=inputActivo(); if(!face||!inp)return;
+          const e=normalizarEvento(ev); const r=face.getBoundingClientRect();
+          const cx=r.left+r.width/2, cy=r.top+r.height/2;
+          let deg=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI+90; if(deg<0)deg+=360;
+          let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||'0',10));
+          if(relojModo==='hour'){
+            let h=Math.round(deg/30)%12; if(h===0)h=12;
+            if(hh>=12 && h<12) h+=12;
+            if(hh<12 && h===12) h=0;
+            hh=h;
+          }else{
+            mm=Math.round((deg/6)/5)*5; if(mm>=60)mm=0;
+          }
+          inp.value=pad(hh)+':'+pad(mm);
+          sincronizarHorarioUI(); pintarReloj();
+          if(ev.cancelable!==false) ev.preventDefault();
+        }
+        function instalarRelojV11(){
+          const modal=getModal(), face=getFace(); if(!modal||!face||face.dataset.v11==='1')return; face.dataset.v11='1';
+          if(!document.getElementById('clockPickFields')){
+            const pills=document.createElement('div'); pills.id='clockPickFields'; pills.className='clock-field-pills';
+            pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button>';
+            face.insertAdjacentElement('afterend',pills);
+            const modes=document.createElement('div'); modes.id='clockPickMode'; modes.className='clock-mode';
+            modes.innerHTML='<button type="button" class="active" data-mode="minute">MIN</button><button type="button" data-mode="hour">HORA</button>';
+            pills.insertAdjacentElement('afterend',modes);
+          }
+          document.getElementById('clockPickFields').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{relojCampoActivo=b.dataset.target; pintarReloj();}));
+          document.getElementById('clockPickMode').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{relojModo=b.dataset.mode; pintarReloj();}));
+          idsTiempo().forEach(id=>{const inp=document.getElementById(id); if(inp){inp.addEventListener('focus',()=>{relojCampoActivo=id;pintarReloj();}); inp.addEventListener('input',()=>{sincronizarHorarioUI();pintarReloj();});}});
+          face.addEventListener('mousedown',e=>{arrastrando=true;moverManija(e);});
+          document.addEventListener('mousemove',e=>{if(arrastrando)moverManija(e);});
+          document.addEventListener('mouseup',()=>{arrastrando=false;});
+          face.addEventListener('touchstart',e=>{arrastrando=true;moverManija(e);},{passive:false});
+          document.addEventListener('touchmove',e=>{if(arrastrando)moverManija(e);},{passive:false});
+          document.addEventListener('touchend',()=>{arrastrando=false;});
+          face.addEventListener('pointerdown',e=>{arrastrando=true; try{face.setPointerCapture(e.pointerId)}catch(_){ } moverManija(e);});
+          face.addEventListener('pointermove',e=>{if(arrastrando)moverManija(e);});
+          face.addEventListener('pointerup',()=>{arrastrando=false;});
+          pintarReloj(); sincronizarHorarioUI();
+        }
+        window.instalarRelojV11=instalarRelojV11;
+        window.pintarRelojV11=pintarReloj;
+        document.addEventListener('shown.bs.modal', e=>{if(e.target&&e.target.id==='modalHora')setTimeout(instalarRelojV11,50);});
+        document.addEventListener('DOMContentLoaded',()=>setTimeout(instalarRelojV11,200));
+      })();
+
+
+
+
+
+      // ===== FIX FINAL V12: RELOJ REAL ARRASTRABLE Y SINCRONIZADO =====
+      // - Click/arrastre con mouse y táctil sobre la manija/cara del reloj.
+      // - Primero selecciona qué campo llenar: Inicio/Fin trabajo o Inicio/Fin refrigerio.
+      // - Modo MIN cambia minutos de 5 en 5; modo HORA cambia la hora.
+      // - Al aplicar, copia los valores al formulario de Registro de trabajador y recalcula H.NORMAL.
+      (function(){
+        const IDS = ['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
+        let campoActivo = 'horaInicioDefault';
+        let modo = 'minute';
+        let dragging = false;
+        function pad(n){ return String(Number(n)||0).padStart(2,'0'); }
+        function modal(){ return document.getElementById('modalHora'); }
+        function face(){ const m=modal(); return m?m.querySelector('.clock-face'):null; }
+        function inp(id){ return document.getElementById(id); }
+        function activo(){ return inp(campoActivo) || inp('horaInicioDefault'); }
+        function eventPoint(ev){ return (ev.touches&&ev.touches[0]) || (ev.changedTouches&&ev.changedTouches[0]) || ev; }
+        function toMinutes(v){ const p=String(v||'00:00').split(':'); return (parseInt(p[0]||0,10)*60)+(parseInt(p[1]||0,10)); }
+        function calcNetas(hi,hf,ri,rf){
+          let a=toMinutes(hi), b=toMinutes(hf); if(b<=a)b+=1440;
+          let total=b-a;
+          if(ri&&rf){ let c=toMinutes(ri), d=toMinutes(rf); if(d<=c)d+=1440; if(b>1440 && c<a){c+=1440; d+=1440;} total-=Math.max(0, Math.min(b,d)-Math.max(a,c)); }
+          return (Math.max(0,total)/60).toFixed(2);
+        }
+        function sincronizarFinal(){
+          const hi=inp('horaInicioDefault')?.value||'06:30', hf=inp('horaFinDefault')?.value||'16:30', ri=inp('refInicioDefault')?.value||'12:00', rf=inp('refFinDefault')?.value||'13:00';
+          [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{const e=inp(id); if(e)e.value=v;});
+          const horas=calcNetas(hi,hf,ri,rf); const h=inp('horasTrab'); if(h)h.value=horas;
+          const box=inp('horarioActivoTxt'); if(box)box.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+horas+'. Se edita desde el icono de reloj del módulo Trabajadores.';
+        }
+        function ensureControls(){
+          const f=face(); if(!f)return;
+          if(!document.getElementById('clockPickFields')){
+            const pills=document.createElement('div'); pills.id='clockPickFields'; pills.className='clock-field-pills';
+            pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button>';
+            f.insertAdjacentElement('afterend', pills);
+            const modes=document.createElement('div'); modes.id='clockPickMode'; modes.className='clock-mode';
+            modes.innerHTML='<button type="button" data-mode="minute" class="active">MIN</button><button type="button" data-mode="hour">HORA</button>';
+            pills.insertAdjacentElement('afterend', modes);
+          }
+        }
+        function pintar(){
+          const f=face(), input=activo(); if(!f||!input)return;
+          const hand=f.querySelector('.clock-hand'), bubble=f.querySelector('.clock-bubble');
+          let [hh,mm]=String(input.value||'00:00').split(':').map(x=>parseInt(x||0,10));
+          let deg = (modo==='hour') ? ((hh%12)*30) : (mm*6);
+          let visual = deg - 90;
+          if(hand) hand.style.transform='rotate('+visual+'deg)';
+          if(bubble){
+            bubble.textContent = pad(modo==='hour'?hh:mm);
+            const r=68, rad=(visual*Math.PI/180), cx=90, cy=90;
+            bubble.style.left=(cx + Math.cos(rad)*r - 22)+'px';
+            bubble.style.top=(cy + Math.sin(rad)*r - 22)+'px';
+            bubble.style.right='auto';
+          }
+          const pills=document.getElementById('clockPickFields'); if(pills) pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.target===campoActivo));
+          const modes=document.getElementById('clockPickMode'); if(modes) modes.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.mode===modo));
+        }
+        function mover(ev){
+          const f=face(), input=activo(); if(!f||!input)return;
+          const e=eventPoint(ev), r=f.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+          let deg=Math.atan2(e.clientY-cy, e.clientX-cx)*180/Math.PI + 90; if(deg<0)deg+=360;
+          let [hh,mm]=String(input.value||'00:00').split(':').map(x=>parseInt(x||0,10));
+          if(modo==='hour'){
+            let h=Math.round(deg/30)%12; if(h===0)h=12;
+            // conserva AM/PM según el valor actual del campo
+            if(hh>=12 && h<12) h+=12;
+            if(hh<12 && h===12) h=0;
+            hh=h;
+          }else{
+            mm=Math.round(deg/30)*5; if(mm>=60)mm=0; // salto de 5 minutos
+          }
+          input.value=pad(hh)+':'+pad(mm);
+          sincronizarFinal(); pintar();
+          if(ev.cancelable!==false) ev.preventDefault();
+        }
+        function instalar(){
+          const m=modal(), f=face(); if(!m||!f)return;
+          ensureControls();
+          // Reemplaza listeners antiguos clonando la cara: evita duplicados de parches anteriores.
+          if(f.dataset.v12!=='1'){
+            f.dataset.v12='1';
+            f.addEventListener('pointerdown', e=>{dragging=true; try{f.setPointerCapture(e.pointerId)}catch(_){ } mover(e);});
+            f.addEventListener('pointermove', e=>{if(dragging)mover(e);});
+            f.addEventListener('pointerup', ()=>dragging=false);
+            f.addEventListener('pointercancel', ()=>dragging=false);
+            f.addEventListener('mousedown', e=>{dragging=true; mover(e);});
+            document.addEventListener('mousemove', e=>{if(dragging)mover(e);});
+            document.addEventListener('mouseup', ()=>dragging=false);
+            f.addEventListener('touchstart', e=>{dragging=true; mover(e);},{passive:false});
+            document.addEventListener('touchmove', e=>{if(dragging)mover(e);},{passive:false});
+            document.addEventListener('touchend', ()=>dragging=false);
+          }
+          const pills=document.getElementById('clockPickFields'); if(pills) pills.querySelectorAll('button').forEach(b=>{ b.onclick=()=>{campoActivo=b.dataset.target; pintar();}; });
+          const modes=document.getElementById('clockPickMode'); if(modes) modes.querySelectorAll('button').forEach(b=>{ b.onclick=()=>{modo=b.dataset.mode; pintar();}; });
+          IDS.forEach(id=>{const e=inp(id); if(e){ e.onfocus=()=>{campoActivo=id;pintar();}; e.onclick=()=>{campoActivo=id;pintar();}; e.oninput=()=>{sincronizarFinal();pintar();}; }});
+          sincronizarFinal(); pintar();
+        }
+        window.aplicarHorarioRegistro=function(){ sincronizarFinal(); pintar(); try{beep();}catch(_){ } };
+        window.instalarRelojHorarioFinal=instalar;
+        document.addEventListener('shown.bs.modal', e=>{ if(e.target&&e.target.id==='modalHora') setTimeout(instalar,60); if(e.target&&e.target.id==='modalRegistro') sincronizarFinal(); });
+        document.addEventListener('DOMContentLoaded', ()=>setTimeout(instalar,250));
+        document.addEventListener('submit', e=>{ if(e.target&&e.target.id==='frmTrab') sincronizarFinal(); });
+      })();
+
+
+      // ===== FIX DEFINITIVO DNI v10: reconocimiento automático real =====
+      // Detecta por digitación, lector USB, QR/código de barras, pegado y cambios silenciosos del input.
+      let _dniLastValueV10='';
+      let _dniLastOkV10='';
+      let _dniPollV10=null;
+      function mostrarEstadoDniV10(tipo, html){
+        const st=document.getElementById('dniStatus');
+        if(!st)return;
+        st.className=(tipo==='ok'?'scan-ok mt-2 flash':(tipo==='bad'?'scan-bad mt-2 flash':'mt-2 field-help'));
+        st.innerHTML=html;
+      }
+      async function procesarDniAutomaticoV10(valor, forzar=false){
+        const inp=document.getElementById('dniTrab');
+        const dni=limpiarDni(valor || (inp&&inp.value) || '');
+        if(!inp)return;
+        if(dni.length<8){
+          if(forzar) mostrarEstadoDniV10('help','Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.');
+          return;
+        }
+        inp.value=dni;
+        if(!forzar && dni===_dniLastOkV10)return;
+        _dniLastOkV10=dni;
+        mostrarEstadoDniV10('ok','Buscando DNI <b>'+dni+'</b>...');
+        try{
+          const r=await fetch('/api/trabajador/'+encodeURIComponent(dni), {cache:'no-store', credentials:'same-origin'});
+          let j=null;
+          try{j=await r.json();}catch(e){j={ok:false,msg:'No se pudo leer la respuesta del servidor.'};}
+          if(!j.ok){
+            mostrarEstadoDniV10('bad','✕ '+(j.msg||'DNI no encontrado en base trabajadores')+' <b>'+dni+'</b>');
+            try{beep();}catch(e){}
+            inp.select();
+            return;
+          }
+          const nombre=(j.trabajador&&(j.trabajador.trabajador||j.trabajador.nombres||j.trabajador.nombre))||'TRABAJADOR';
+          if(!workerMap.has(dni)) workerMap.set(dni,nombre);
+          renderQueue();
+          mostrarEstadoDniV10('ok','✓ Reconocido automáticamente: <b>'+nombre+'</b> · '+dni);
+          try{beep();}catch(e){}
+          setTimeout(()=>{inp.value=''; _dniLastValueV10=''; inp.focus();},220);
+        }catch(e){
+          mostrarEstadoDniV10('bad','Error consultando trabajador. Revisa conexión o sesión.');
+        }
+      }
+      function instalarAutoDniFinalV10(){
+        const inp=document.getElementById('dniTrab');
+        if(!inp)return;
+        window.workerMap=workerMap; window.renderQueue=renderQueue; window.autoDetectarDniInline=(el)=>procesarDniAutomaticoV10(el&&el.value,true);
+        ['input','keyup','change','paste','blur'].forEach(ev=>{
+          inp.addEventListener(ev,()=>setTimeout(()=>procesarDniAutomaticoV10(inp.value,true), ev==='paste'?80:10), true);
+        });
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key==='Tab'){procesarDniAutomaticoV10(inp.value,true); if(e.key==='Enter')e.preventDefault();}}, true);
+        if(_dniPollV10) clearInterval(_dniPollV10);
+        _dniPollV10=setInterval(()=>{
+          const x=document.getElementById('dniTrab'); if(!x)return;
+          const v=x.value||'';
+          if(v!==_dniLastValueV10){_dniLastValueV10=v; procesarDniAutomaticoV10(v,false);}
+        },180);
+      }
+
+      document.addEventListener('DOMContentLoaded',()=>{bindClock();bindClockV7();bindClockV8();bindDniAuto();instalarAutoDniFinalV10();bindModalMaestros();});
     </script>
     """
     return render_page(body, h=h, tab=tab, tareos=tareos, lecturas=lecturas, labores=labores, registros=registros, horas_total=horas_total, rend_total=rend_total, maestros_json=js_master_options(get_actividades_maestras()))
