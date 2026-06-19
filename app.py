@@ -221,6 +221,94 @@ BASE_HTML = r"""
 <audio id="sndOk"><source src="data:audio/wav;base64,UklGRjQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YRAAAAAAAP//AAD//wAA//8AAP//AAD//wAA//8=" type="audio/wav"></audio>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script>function beep(){try{let a=document.getElementById('sndOk');a.currentTime=0;a.play().catch(()=>{});}catch(e){}}if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}function bindSwipeCards(){document.querySelectorAll('.swipe-wrap').forEach(w=>{let sx=0,dx=0;w.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;});w.addEventListener('touchmove',e=>{dx=e.touches[0].clientX-sx;});w.addEventListener('touchend',()=>{if(dx<-35)w.classList.add('show-actions'); if(dx>35)w.classList.remove('show-actions'); dx=0;});w.addEventListener('contextmenu',e=>{e.preventDefault();w.classList.toggle('show-actions');});});}document.addEventListener('DOMContentLoaded',bindSwipeCards);
 </script>
+
+<script>
+/* PARCHE FINAL DE LECTURA AUTOMÁTICA DNI/QR/BARRAS - no depende del script del modal */
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  let timer=null, busy=false, last='';
+  window.__dniQueueFinal = window.__dniQueueFinal || new Map();
+  function dni(v){
+    const raw=String(v||'');
+    const m=raw.match(/(?:^|\D)(\d{8})(?:\D|$)/);
+    const d=m?m[1]:raw.replace(/\D/g,'');
+    return d.length>=8?d.slice(-8):d;
+  }
+  function sound(ok=true){
+    try{
+      if(typeof beep==='function'){beep();return;}
+      const C=window.AudioContext||window.webkitAudioContext; if(!C)return;
+      const ctx=new C(), o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=ok?880:220; g.gain.value=.08;
+      o.connect(g); g.connect(ctx.destination); o.start(); setTimeout(()=>{try{o.stop();ctx.close();}catch(e){}},140);
+    }catch(e){}
+  }
+  function st(kind,msg){
+    const e=$('dniStatus'); if(!e)return;
+    e.className=(kind==='ok'?'scan-ok mt-2 flash':kind==='bad'?'scan-bad mt-2 flash':'mt-2 field-help');
+    e.innerHTML=msg;
+  }
+  function render(){
+    const q=$('workerQueue'), h=$('dnisMasivos'); if(!q||!h)return;
+    const arr=[...window.__dniQueueFinal.entries()];
+    h.value=arr.map(x=>x[0]).join(',');
+    if(!arr.length){q.innerHTML='<div class="text-muted small text-center">Aún no hay trabajadores detectados.</div>';return;}
+    q.innerHTML=arr.map(([d,n])=>'<div class="queue-item"><div><b>'+d+'</b><br><span>'+String(n||'TRABAJADOR')+'</span></div><button type="button" class="btn btn-sm btn-outline-danger" onclick="window.__dniQueueFinal.delete(\''+d+'\');window.renderQueueFinal&&window.renderQueueFinal();">×</button></div>').join('');
+  }
+  window.renderQueueFinal=render;
+  async function process(v, force=false){
+    const input=$('dniTrab'); if(!input)return;
+    const d=dni(v||input.value);
+    if(d.length<8){ if(force)st('help','Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.'); return; }
+    input.value=d;
+    if(!force && d===last)return;
+    if(busy){clearTimeout(timer); timer=setTimeout(()=>process(d,true),90); return;}
+    busy=true; last=d; st('ok','Buscando DNI <b>'+d+'</b>...');
+    try{
+      const r=await fetch('/api/trabajador/'+encodeURIComponent(d),{cache:'no-store',credentials:'same-origin'});
+      let j={ok:false,msg:'Respuesta inválida'}; try{j=await r.json();}catch(e){}
+      if(!j.ok){st('bad','✕ '+(j.msg||'DNI no encontrado en base trabajadores')+' <b>'+d+'</b>'); sound(false); input.select(); return;}
+      const t=j.trabajador||{}, nombre=t.trabajador||t.nombres||t.nombre||'TRABAJADOR';
+      if(!window.__dniQueueFinal.has(d)){window.__dniQueueFinal.set(d,nombre);}
+      if(window.workerMap){ try{window.workerMap.set(d,nombre); window.renderQueue&&window.renderQueue();}catch(e){} }
+      render(); st('ok','✓ Reconocido automáticamente: <b>'+nombre+'</b> · '+d); sound(true);
+      setTimeout(()=>{input.value=''; last=''; input.focus();},160);
+    }catch(e){st('bad','Error consultando trabajador. Revisa conexión/sesión.'); sound(false);}
+    finally{busy=false;}
+  }
+  window.autoDetectarDniInline=function(el){clearTimeout(timer); timer=setTimeout(()=>process((el&&el.value)||($('dniTrab')&&$('dniTrab').value)||'',false),25);};
+  document.addEventListener('input',e=>{if(e.target&&e.target.id==='dniTrab')window.autoDetectarDniInline(e.target);},true);
+  document.addEventListener('keyup',e=>{if(e.target&&e.target.id==='dniTrab')window.autoDetectarDniInline(e.target);},true);
+  document.addEventListener('paste',e=>{if(e.target&&e.target.id==='dniTrab')setTimeout(()=>process(e.target.value,true),60);},true);
+  document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='dniTrab'&&(e.key==='Enter'||e.key==='Tab')){process(e.target.value,true); if(e.key==='Enter')e.preventDefault();}},true);
+  document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalRegistro'){setTimeout(()=>{const i=$('dniTrab'); if(i){i.focus(); if(dni(i.value).length>=8)process(i.value,true);}},80);}},true);
+  document.addEventListener('submit',e=>{if(e.target&&e.target.id==='frmTrab'){render(); const h=$('dnisMasivos'), i=$('dniTrab'); if(h&&i&&dni(i.value).length===8){const d=dni(i.value); if(!h.value.includes(d)) h.value=(h.value?h.value+',':'')+d;}}},true);
+  setInterval(()=>{const i=$('dniTrab'); if(i&&dni(i.value).length>=8)process(i.value,false);},220);
+
+  async function loadQr(){
+    if(window.Html5Qrcode)return true;
+    return new Promise(res=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';s.onload=()=>res(!!window.Html5Qrcode);s.onerror=()=>res(false);document.head.appendChild(s);});
+  }
+  let qr=null;
+  window.abrirScanner=async function(readerId,inputId){
+    const box=$(readerId), input=$(inputId); if(!box||!input)return;
+    box.style.display='block'; box.innerHTML='<div class="p-2 text-success fw-bold">Abriendo cámara...</div>';
+    if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1'){box.innerHTML='<div class="scan-bad">La cámara requiere HTTPS. Abre Render con https:// y permite cámara.</div>'; sound(false); return;}
+    if(!navigator.mediaDevices){box.innerHTML='<div class="scan-bad">Este navegador no permite cámara. Usa Chrome actualizado.</div>'; sound(false); return;}
+    if(!(await loadQr())){box.innerHTML='<div class="scan-bad">No cargó librería del lector. Revisa internet/CDN.</div>'; sound(false); return;}
+    try{ if(qr){await qr.stop().catch(()=>{}); await qr.clear().catch(()=>{});} }catch(e){}
+    try{
+      qr=new Html5Qrcode(readerId);
+      await qr.start({facingMode:{ideal:'environment'}},{fps:12,qrbox:{width:240,height:160}},async decoded=>{
+        const d=dni(decoded); input.value=d; input.dispatchEvent(new Event('input',{bubbles:true}));
+        if(inputId==='dniTrab') await process(d,true); else sound(true);
+        try{await qr.stop(); await qr.clear();}catch(e){} box.style.display='none'; qr=null;
+      },()=>{});
+    }catch(e){box.innerHTML='<div class="scan-bad">No se pudo activar cámara. Permite cámara en el candado del navegador.</div>'; sound(false);}
+  };
+})();
+</script>
 </body></html>
 """
 
