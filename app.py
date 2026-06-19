@@ -282,6 +282,13 @@ input[type="text"], input:not([type]), textarea { text-transform:uppercase; }
 .time-worker-grid,.ref-worker-grid{gap:6px}.time-metrics{padding:7px;gap:6px}.worker-card{padding:9px 11px}.metric-box{padding:5px 7px;min-height:28px}.time-box{min-height:27px;padding:4px 6px}
 .worker-card.editable-tareo{cursor:pointer}.worker-card.editable-tareo:after{content:'Tocar para editar';position:absolute;right:10px;bottom:8px;font-size:8px;font-weight:900;color:#2f773b}
 
+
+/* === PARCHE REAL 247: tarjeta trabajador en 3 columnas compacto === */
+.trabajador-card-ref{max-width:790px!important;padding:18px 24px!important}
+.trabajador-grid-ref{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:22px 18px!important;margin-top:28px!important}
+.trabajador-grid-ref label{font-size:12px!important;margin-bottom:7px!important}
+.trabajador-grid-ref .time-box,.trabajador-grid-ref .metric-box{height:46px!important;font-size:20px!important;background:#fbfffb!important;border:1px solid #9ebaa0!important;border-radius:4px!important;display:flex!important;align-items:center!important;color:#006b2e!important;font-weight:900!important}
+@media(max-width:860px){.trabajador-card-ref{max-width:505px!important;padding:10px 13px!important}.trabajador-grid-ref{grid-template-columns:repeat(3,1fr)!important;gap:10px 7px!important;margin-top:16px!important}.trabajador-grid-ref label{font-size:8.5px!important;margin-bottom:4px!important}.trabajador-grid-ref .time-box,.trabajador-grid-ref .metric-box{height:32px!important;font-size:13px!important;padding:4px 7px!important}.trabajador-card-ref .worker-title b{font-size:12px!important}}
 </style></head><body class="{{ 'login-page' if not session.get('usuario') else '' }}"><div class="app-bg"><main class="shell">
 {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="phone-wrap mt-2">{% for cat,msg in messages %}<div class="alert alert-{{cat}} shadow-sm">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
 {{ body|safe }}</main></div>
@@ -596,7 +603,7 @@ def detalle_hoja(hoja_id):
         {% if tab=='labores' %}
           {% for l in labores %}<a class="text-decoration-none" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='trabajadores')}}"><div class="worker-card labor-card-compact"><div class="worker-title"><div>ACTIVIDAD<br><b>{{l.grupo}}</b></div><div class="text-end">LABOR<br><b>{{l.subgrupo or 'SIN LABOR'}}</b></div></div><div class="mt-2"><span class="small-label">CONSUMIDOR</span> <b class="labor-main">{{l.labor or 'SIN CONSUMIDOR'}}</b><br><span class="small-label">RESPONSABLE</span> <b class="resp-main">{{l.responsable or h.responsable}}</b></div><div class="worker-grid mt-2"><div><div class="mini-badge {{'bg-y' if l.turno=='NOCHE' else 'bg-g'}}">{{l.turno}}</div></div><div><div class="mini-badge bg-y">{{l.tipo_tareo}}</div></div><div><div class="mini-badge bg-g">ACTIVA</div></div></div></div></a>{% else %}<div class="worker-card text-center text-muted">Presiona <b>+</b> para crear actividad, labor y consumidor.</div>{% endfor %}
         {% elif tab=='trabajadores' %}
-          {% for r in tareos %}<div class="worker-card trabajador-card-ref {{'editable-tareo' if h.estado!='ENVIADA' else ''}}" {% if h.estado!='ENVIADA' %}onclick="abrirEditarTareo('{{r.id}}','{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}','{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}','{{r.ref_inicio or '12:00'}}','{{r.ref_fin or '13:00'}}')"{% endif %}><div class="worker-title"><div>TRABAJADOR<br><b>{{r.trabajador}}</b></div><div>NRO.DOCUMENTO<br><b>{{r.dni}}</b></div></div><div class="trabajador-grid-ref"><div><label>HORA INICIO</label><div class="time-box">{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}</div></div><div><label>HORA FIN</label><div class="time-box">{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}</div></div><div><label>H.NORMAL</label><div class="metric-box">{{'%.2f'|format((r.horas or 0) - (r.horas_nocturnas or 0))}}</div></div><div><label>H.NOCTURNO</label><div class="metric-box">{{'%.2f'|format(r.horas_nocturnas or 0)}}</div></div><div><label>REF. INI</label><div class="time-box">{{r.ref_inicio or '12:00'}}</div></div><div><label>REF. FIN</label><div class="time-box">{{r.ref_fin or '13:00'}}</div></div><div><label>ESTADO</label><div class="mini-badge bg-g">FIN TOTAL</div></div></div></div>{% else %}<div class="worker-card text-center text-muted">Presiona el <b>hombresito +</b> para registrar trabajador por QR/código/digitación.</div>{% endfor %}
+          {% for r in tareos %}<div class="worker-card trabajador-card-ref {{'editable-tareo' if h.estado!='ENVIADA' else ''}}" {% if h.estado!='ENVIADA' %}onclick="abrirEditarTareo('{{r.id}}','{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}','{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}','{{r.ref_inicio or '12:00'}}','{{r.ref_fin or '13:00'}}')"{% endif %}><div class="worker-title"><div>TRABAJADOR<br><b>{{r.trabajador}}</b></div><div>NRO.DOCUMENTO<br><b>{{r.dni}}</b></div></div><div class="trabajador-grid-ref"><div><label>H.INICIO</label><div class="time-box">{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}</div></div><div><label>H.FIN</label><div class="time-box">{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}</div></div><div><label>H.NORMAL</label><div class="metric-box">{{'%.2f'|format((r.horas or 0) - (r.horas_nocturnas or 0))}}</div></div><div><label>REF.INI</label><div class="time-box">{{r.ref_inicio or '12:00'}}</div></div><div><label>REF.FIN</label><div class="time-box">{{r.ref_fin or '13:00'}}</div></div><div><label>H.NOCTURNO</label><div class="metric-box">{{'%.2f'|format(r.horas_nocturnas or 0)}}</div></div><div><label>ESTADO</label><div class="mini-badge bg-g">FIN TOTAL</div></div></div></div>{% else %}<div class="worker-card text-center text-muted">Presiona el <b>hombresito +</b> para registrar trabajador por QR/código/digitación.</div>{% endfor %}
         {% else %}
           {% for l in lecturas %}<div class="worker-card"><span class="person-dot"><i class="bi bi-person-circle"></i></span><div class="worker-title"><div>TRABAJADOR<br><b>{{l.trabajador}}</b></div><div>NRO.DOC.<br><b>{{l.dni}}</b></div></div><div class="small-label mt-1">HORA TOMA REGISTRO</div><div class="small-value">{{l.fecha_hora}} · {{l.metodo or 'DIGITACIÓN'}}</div><div class="worker-grid"><div><label>A.DIURNO</label><div class="mini-badge bg-y">{{'%.2f'|format(l.a_diurno or 0)}}</div></div><div><label>A.NOCT.</label><div class="mini-badge bg-y">{{'%.2f'|format(l.a_noct or 0)}}</div></div><div class="text-end"><i class="bi bi-chevron-left text-success"></i></div></div></div>{% else %}<div class="worker-card text-center text-muted">Presiona el icono de escaneo para registrar avance por QR/código/digitación.</div>{% endfor %}
         {% endif %}<div class="leaf"></div>
@@ -844,6 +851,100 @@ def detalle_hoja(hoja_id):
   });
   document.addEventListener('DOMContentLoaded',()=>{instalarDniAuto();instalarReloj();instalarMaestros();});
   document.addEventListener('submit',e=>{if(e.target&&e.target.id==='frmTrab'){sincHorario(); window.renderQueue();}});
+})();
+</script>
+
+<script>
+/* === PARCHE REAL 247: maestros + horario deslizable robusto === */
+(function(){
+  'use strict';
+  const $ = (id)=>document.getElementById(id);
+  const norm = (v)=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+  const pad = (n)=>String(Number(n)||0).padStart(2,'0');
+  function minToTime(m){m=Math.max(0,Math.min(1435,parseInt(m||0,10)));return pad(Math.floor(m/60))+':'+pad(m%60);}
+  function toMin(v){let p=String(v||'00:00').split(':'),h=parseInt(p[0]||0,10),m=parseInt(p[1]||0,10); if(isNaN(h))h=0;if(isNaN(m))m=0;return Math.max(0,Math.min(1435,h*60+m));}
+  function safeText(v){return String(v||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+  // ---------- ACTIVIDAD / LABOR / CONSUMIDOR DESDE API ----------
+  let maestros=[];
+  const demo=[
+    {desc_actividad:'ADMINISTRACION',desc_labor:'LABOR ADMINISTRATIVA',desc_consumidor:'OFICINA CENTRAL'},
+    {desc_actividad:'ADMISION',desc_labor:'CONTROL DOCUMENTARIO',desc_consumidor:'OFICINA 01'},
+    {desc_actividad:'COSECHA',desc_labor:'COSECHA MANUAL',desc_consumidor:'CAMPO 01'},
+    {desc_actividad:'COSECHA',desc_labor:'COSECHA SELECTIVA',desc_consumidor:'CAMPO 02'},
+    {desc_actividad:'PODA',desc_labor:'PODA SANITARIA',desc_consumidor:'LOTE 01'}
+  ];
+  function fila(x){
+    const pick=(names)=>{for(const n of names){if(x&&x[n]!=null&&String(x[n]).trim())return norm(x[n]);}return '';};
+    return {
+      desc_actividad:pick(['desc_actividad','actividad','grupo','cod_actividad','ACTIVIDAD','DESCRIPCION_ACTIVIDAD','DESCRIPCION ACTIVIDAD']),
+      desc_labor:pick(['desc_labor','labor','subgrupo','cod_labor','LABOR','DESCRIPCION_LABOR','DESCRIPCION LABOR']),
+      desc_consumidor:pick(['desc_consumidor','consumidor','zona','campo','cod_consumidor','CONSUMIDOR','ZONA','CAMPO'])
+    };
+  }
+  function unique(a){return [...new Set((a||[]).filter(Boolean))].sort((x,y)=>x.localeCompare(y));}
+  function status(msg,bad){let s=$('modalMasterStatus'); if(s){s.className='master-status'+(bad?' bad':''); s.textContent=msg;}}
+  function fillDatalist(id, arr){let dl=$(id); if(!dl)return; dl.innerHTML=''; arr.slice(0,500).forEach(v=>{let o=document.createElement('option');o.value=v;dl.appendChild(o);});}
+  function showBox(id,input,vals,onpick){
+    let b=$(id); if(!b||!input)return; let q=norm(input.value); let list=(q?vals.filter(v=>norm(v).includes(q)):vals).slice(0,30);
+    if(!list.length){b.style.display='none'; b.innerHTML=''; return;}
+    b.innerHTML=list.map(v=>'<div>'+safeText(v)+'</div>').join(''); b.style.display='block';
+    [...b.children].forEach(d=>{d.onmousedown=e=>e.preventDefault(); d.onclick=()=>{input.value=d.textContent; b.style.display='none'; if(onpick)onpick();};});
+  }
+  async function cargarMaestros(){
+    try{
+      let r=await fetch('/api/actividades-maestras?ts='+Date.now(),{cache:'no-store',credentials:'same-origin'});
+      let j=await r.json();
+      maestros=(j&&j.ok&&Array.isArray(j.data)?j.data:[]).map(fila).filter(x=>x.desc_actividad||x.desc_labor||x.desc_consumidor);
+    }catch(e){maestros=[];}
+    if(!maestros.length){maestros=demo.map(fila); status('SIN DATA REAL EN API: USANDO DEMO TEMPORAL',true);} else status('ACTIVIDADES CARGADAS: '+maestros.length+' REGISTROS',false);
+  }
+  async function instalarMaestrosReal(){
+    let a=$('modalActividad'), l=$('modalLaborInput'), c=$('modalConsumidor'); if(!a||!l)return;
+    await cargarMaestros();
+    const getActs=()=>unique(maestros.map(x=>x.desc_actividad));
+    const rowsA=()=>{let q=norm(a.value);return maestros.filter(x=>!q||x.desc_actividad.includes(q));};
+    const getLabs=()=>unique(rowsA().map(x=>x.desc_labor));
+    const rowsL=()=>{let q=norm(l.value);return rowsA().filter(x=>!q||x.desc_labor.includes(q));};
+    const getCons=()=>unique(rowsL().map(x=>x.desc_consumidor));
+    function refreshActividad(show=true){let vals=getActs();fillDatalist('modal_actividad_list',vals); if(show)showBox('modalActividadSuggest',a,vals,()=>{l.value=''; if(c)c.value=''; refreshLabor(true); setTimeout(()=>l.focus(),20);});}
+    function refreshLabor(show=true){let vals=getLabs();fillDatalist('modal_labor_list',vals); if(show)showBox('modalLaborSuggest',l,vals,()=>{if(c)c.value=''; refreshConsumidor(true); setTimeout(()=>c&&c.focus(),20);}); refreshConsumidor(false);}
+    function refreshConsumidor(show=true){let vals=getCons();fillDatalist('modal_consumidor_list',vals); if(c&&show)showBox('modalConsumidorSuggest',c,vals,()=>{});}
+    a.oninput=()=>{a.value=norm(a.value); refreshActividad(true); refreshLabor(true);};
+    a.onfocus=()=>refreshActividad(true);
+    l.oninput=()=>{l.value=norm(l.value); refreshLabor(true);};
+    l.onfocus=()=>refreshLabor(true);
+    if(c){c.oninput=()=>{c.value=norm(c.value); refreshConsumidor(true);}; c.onfocus=()=>refreshConsumidor(true);}
+    refreshActividad(false); refreshLabor(false);
+  }
+
+  // ---------- HORARIO POR DESLIZADOR: PC + TÁCTIL ----------
+  const ids=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
+  let active='horaInicioDefault';
+  function inputActive(){return $(active)||$('horaInicioDefault');}
+  function paint(){let inp=inputActive(), sl=$('timeSlider24'), val=$('touchClockValue'); if(inp&&sl)sl.value=toMin(inp.value); if(inp&&val)val.textContent=inp.value; let box=$('clockPickFields'); if(box)[...box.querySelectorAll('button')].forEach(b=>b.classList.toggle('active',b.dataset.target===active));}
+  function setActive(id){active=id; paint(); let e=$(id); if(e)try{e.focus({preventScroll:true});}catch(_){} }
+  function applySlider(){let inp=inputActive(); if(!inp)return; let sl=$('timeSlider24'); inp.value=minToTime(sl?sl.value:0); paint(); syncHidden();}
+  function syncHidden(){
+    const hi=$('horaInicioDefault')?.value||'06:30', hf=$('horaFinDefault')?.value||'16:30', ri=$('refInicioDefault')?.value||'12:00', rf=$('refFinDefault')?.value||'13:00';
+    [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{let e=$(id);if(e)e.value=v;});
+    let a=toMin(hi),b=toMin(hf); if(b<=a)b+=1440; let c=toMin(ri),d=toMin(rf); if(d<=c)d+=1440; if(b>1440&&c<a){c+=1440;d+=1440;} let total=Math.max(0,(b-a)-Math.max(0,Math.min(b,d)-Math.max(a,c)))/60;
+    let h=$('horasTrab'); if(h)h.value=total.toFixed(2);
+    let txt=$('horarioActivoTxt'); if(txt)txt.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+total.toFixed(2)+'.';
+  }
+  function instalarRelojReal(){
+    let sl=$('timeSlider24');
+    let box=$('clockPickFields'); if(box)[...box.querySelectorAll('button')].forEach(b=>{b.onclick=e=>{e.preventDefault();setActive(b.dataset.target);}; b.onpointerdown=e=>{setActive(b.dataset.target);};});
+    ids.forEach(id=>{let e=$(id); if(e){e.readOnly=true; e.style.cursor='pointer'; e.onclick=()=>setActive(id); e.onpointerdown=()=>setActive(id); e.onfocus=()=>setActive(id);}});
+    if(sl && sl.dataset.boundReal!=='1'){
+      sl.dataset.boundReal='1'; sl.style.pointerEvents='auto'; sl.style.touchAction='none';
+      ['input','change','pointermove','mousemove','touchmove','click','pointerup','touchend'].forEach(ev=>sl.addEventListener(ev,applySlider,{passive:true}));
+    }
+    paint(); syncHidden();
+  }
+  window.setCampoHorario=setActive; window.aplicarHorarioRegistro=syncHidden;
+  document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalLabor')setTimeout(instalarMaestrosReal,50); if(e.target&&e.target.id==='modalHora')setTimeout(instalarRelojReal,50);});
+  document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{instalarMaestrosReal(); instalarRelojReal();},100);});
 })();
 </script>
 
