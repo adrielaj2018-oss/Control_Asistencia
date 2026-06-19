@@ -270,7 +270,8 @@ input[type="text"], input:not([type]), textarea { text-transform:uppercase; }
 .touch-clock-actions{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
 .touch-clock-actions button{border:0;background:#2f773b;color:white;border-radius:8px;padding:8px 2px;font-size:11px;font-weight:900}
 .touch-clock-value{text-align:center;font-size:24px;font-weight:900;color:#166534;background:#fff;border:1px solid #cfe6d4;border-radius:10px;padding:6px;margin-bottom:8px}
-.modal-dialog{max-width:430px}
+.modal-dialog{max-width:390px}.modal-content{border-radius:13px}.modal-header{padding:10px 14px}.modal-body{padding:12px 14px}.modal-footer{padding:10px 14px}.modal-title{font-size:18px}.modal .form-label{font-size:11px;margin-bottom:3px}.modal .form-control,.modal .form-select{height:37px;font-size:12px;padding:6px 10px}.modal .alert{font-size:12px;padding:9px 11px;margin-bottom:10px}
+.time-slider{width:100%;accent-color:#2f773b;touch-action:pan-y;margin:6px 0 3px}.time-display{height:33px;border:1px solid #cfe6d4;border-radius:9px;background:#fff;display:grid;place-items:center;font-weight:900;color:#166534;font-size:20px;margin-bottom:7px}.touch-clock-panel{padding:7px!important;margin:4px 0 8px!important}.touch-clock-picks{gap:5px!important;margin-bottom:6px!important}.touch-clock-picks button{padding:6px 3px!important;font-size:9px!important}.touch-clock-actions{display:none!important}
 .time-worker-grid,.ref-worker-grid{gap:6px}.time-metrics{padding:7px;gap:6px}.worker-card{padding:9px 11px}.metric-box{padding:5px 7px;min-height:28px}.time-box{min-height:27px;padding:4px 6px}
 .worker-card.editable-tareo{cursor:pointer}.worker-card.editable-tareo:after{content:'Tocar para editar';position:absolute;right:10px;bottom:8px;font-size:8px;font-weight:900;color:#2f773b}
 
@@ -598,7 +599,7 @@ def detalle_hoja(hoja_id):
     <div class="modal fade" id="modalLabor" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_labor_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-plus-square"></i> Crear nueva labor</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small mb-2">Complete los datos y presione <b>CREAR LABOR</b>. Al cerrar con X no se guarda nada.</div><label class="form-label">ACTIVIDAD</label><input id="modalActividad" name="grupo" class="form-control mb-1" list="modal_actividad_list" placeholder="Digite primeras letras de la actividad" required autocomplete="off"><datalist id="modal_actividad_list"></datalist><div id="modalActividadSuggest" class="modal-suggest"></div><label class="form-label">LABOR</label><input id="modalLaborInput" name="subgrupo" class="form-control mb-1" list="modal_labor_list" placeholder="Seleccione labor según actividad" required autocomplete="off"><datalist id="modal_labor_list"></datalist><div id="modalLaborSuggest" class="modal-suggest"></div><label class="form-label">CONSUMIDOR (opcional)</label><input id="modalConsumidor" name="labor" class="form-control mb-1" list="modal_consumidor_list" placeholder="Consumidor / zona / campo"><datalist id="modal_consumidor_list"></datalist><div id="modalConsumidorSuggest" class="modal-suggest"></div><label class="form-label">RESPONSABLE</label><input name="responsable" class="form-control mb-2" placeholder="APELLIDOS Y NOMBRES" value="{{h.responsable}}"><div class="row g-2"><div class="col-6"><label class="form-label">TURNO</label><select name="turno" class="form-select"><option>DIA</option><option>NOCHE</option></select></div><div class="col-6"><label class="form-label">TIPO</label><select name="tipo_tareo" class="form-select"><option>JORNAL</option><option>RENDIMIENTO</option></select></div></div></div><div class="modal-footer"><button class="btn btn-green w-100" type="submit">CREAR LABOR</button></div></form></div></div></div>
     <div class="modal fade" id="modalCopiar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('copiar_labor_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-files"></i> Copiar labor existente</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small">Selecciona el documento/labor que deseas copiar. No se copiará nada hasta presionar <b>COPIAR SELECCIONADO</b>.</div><div class="copy-list">{% for l in labores %}<label class="d-block mb-2"><input type="radio" name="labor_id_origen" value="{{l.id}}" required> <b>{{l.labor}}</b><br><span class="small text-muted">{{l.grupo}} / {{l.subgrupo}} / {{l.turno}} / {{l.tipo_tareo}}</span></label>{% endfor %}</div><label class="form-label mt-2">Nuevo nombre de labor (opcional)</label><input name="labor_nueva" class="form-control" placeholder="Dejar vacío para copiar igual"></div><div class="modal-footer"><button class="btn btn-green w-100">COPIAR SELECCIONADO</button></div></form></div></div></div>
     <div class="modal fade" id="modalBuscar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-search"></i> Buscar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input id="buscarDni" class="form-control mb-2" placeholder="DNI / QR / código barras"><button class="btn btn-green w-100" onclick="buscarTrabajadorLibre()">BUSCAR</button><div id="buscarResultado" class="alert alert-light border mt-2">Esperando búsqueda.</div></div></div></div></div>
-    <div class="modal fade" id="modalHora" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('fijar_horario_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-clock"></i> Fijar horario obligatorio</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-warning small"><b>Obligatorio:</b> fija el horario antes de tarear trabajadores. Formato 24 horas (ej. 06:30, 16:30, 22:00, 06:00).</div><div class="touch-clock-panel"><div class="clock-24-hint">Toque un campo y use los botones táctiles</div><div id="touchClockValue" class="touch-clock-value">06:30</div><div id="clockPickFields" class="touch-clock-picks"><button type="button" data-target="horaInicioDefault" class="active">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button></div><div class="touch-clock-actions"><button type="button" onclick="tocarHora(-1)">- H</button><button type="button" onclick="tocarHora(1)">+ H</button><button type="button" onclick="tocarMin(-5)">- 5</button><button type="button" onclick="tocarMin(5)">+ 5</button></div></div><div class="row g-2"><div class="col-6"><label class="form-label">Inicio trabajo</label><input name="hora_inicio_default" id="horaInicioDefault" type="text" pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$" class="form-control" value="{{h.hora_inicio_default or '06:30'}}" required></div><div class="col-6"><label class="form-label">Fin trabajo</label><input name="hora_fin_default" id="horaFinDefault" type="text" pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$" class="form-control" value="{{h.hora_fin_default or '16:30'}}" required></div><div class="col-6"><label class="form-label">Inicio refrigerio</label><input name="ref_inicio_default" id="refInicioDefault" type="text" pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$" class="form-control" value="{{h.ref_inicio_default or '12:00'}}" required></div><div class="col-6"><label class="form-label">Fin refrigerio</label><input name="ref_fin_default" id="refFinDefault" type="text" pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$" class="form-control" value="{{h.ref_fin_default or '13:00'}}" required></div></div><button class="btn btn-green w-100 mt-3" type="submit">FIJAR HORARIO</button></div></form></div></div></div>
+    <div class="modal fade" id="modalHora" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('fijar_horario_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-clock"></i> Fijar horario obligatorio</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-warning small"><b>Obligatorio:</b> fija el horario antes de tarear trabajadores. Formato 24 horas (ej. 06:30, 16:30, 22:00, 06:00).</div><div class="touch-clock-panel"><div class="clock-24-hint">Toque el campo y deslice la barra. No se escribe manualmente.</div><div id="touchClockValue" class="time-display">06:30</div><input id="timeSlider24" class="time-slider" type="range" min="0" max="1435" step="5" value="390"><div id="clockPickFields" class="touch-clock-picks"><button type="button" data-target="horaInicioDefault" class="active">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button></div></div><div class="row g-2"><div class="col-6"><label class="form-label">Inicio trabajo</label><input name="hora_inicio_default" id="horaInicioDefault" type="text" class="form-control locked-input" value="{{h.hora_inicio_default or '06:30'}}" required readonly></div><div class="col-6"><label class="form-label">Fin trabajo</label><input name="hora_fin_default" id="horaFinDefault" type="text" class="form-control locked-input" value="{{h.hora_fin_default or '16:30'}}" required readonly></div><div class="col-6"><label class="form-label">Inicio refrigerio</label><input name="ref_inicio_default" id="refInicioDefault" type="text" class="form-control locked-input" value="{{h.ref_inicio_default or '12:00'}}" required readonly></div><div class="col-6"><label class="form-label">Fin refrigerio</label><input name="ref_fin_default" id="refFinDefault" type="text" class="form-control locked-input" value="{{h.ref_fin_default or '13:00'}}" required readonly></div></div><button class="btn btn-green w-100 mt-3" type="submit">FIJAR HORARIO</button></div></form></div></div></div>
     <div class="modal fade" id="modalEditTareo" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="frmEditTareo" method="post"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-pencil-square"></i> Editar horas del trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small">Solo se puede editar si la hoja aún no fue enviada.</div><div class="row g-2"><div class="col-6"><label class="form-label">Hora inicio</label><input id="editHi" name="hora_inicio" class="form-control" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div><div class="col-6"><label class="form-label">Hora fin</label><input id="editHf" name="hora_fin" class="form-control" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div><div class="col-6"><label class="form-label">Ref. ini</label><input id="editRi" name="ref_inicio" class="form-control" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div><div class="col-6"><label class="form-label">Ref. fin</label><input id="editRf" name="ref_fin" class="form-control" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div></div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR CAMBIOS</button></div></form></div></div></div>
 
     <div class="modal fade" id="modalRegistro" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='trabajadores')}}" id="frmTrab"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-person-plus"></i> Registrar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniTrab" class="form-control" placeholder="Escanee o digite DNI" autocomplete="off" inputmode="numeric" maxlength="30" oninput="autoDetectarDniInline(this)" onkeyup="autoDetectarDniInline(this)" onchange="autoDetectarDniInline(this)"><button type="button" class="btn btn-green" onclick="abrirScanner('readerTrab','dniTrab')"><i class="bi bi-upc-scan"></i></button></div><div id="readerTrab" style="display:none;margin-top:8px"></div><div id="dniStatus" class="mt-2 field-help">Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.</div><input type="hidden" name="dnis_masivos" id="dnisMasivos"><div class="queue-title">PRE-REGISTRO DE TRABAJADORES</div><div id="workerQueue" class="worker-queue"><div class="text-muted small text-center">Aún no hay trabajadores detectados.</div></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.grupo}} / {{l.subgrupo}} / {{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><input name="turno" id="turnoTrab" type="hidden" value="DIA"><input name="tipo_tareo" type="hidden" value="JORNAL"><input name="hora_inicio" id="horaInicioTrab" type="hidden" value="{{h.hora_inicio_default or '06:30'}}"><input name="hora_fin" id="horaFinTrab" type="hidden" value="{{h.hora_fin_default or '16:30'}}"><input name="ref_inicio" id="refInicioTrab" type="hidden" value="{{h.ref_inicio_default or '12:00'}}"><input name="ref_fin" id="refFinTrab" type="hidden" value="{{h.ref_fin_default or '13:00'}}"><input name="horas" id="horasTrab" type="hidden" value="0"><input name="cantidad" type="hidden" value="0.00"><div id="horarioActivoTxt" class="alert {{'alert-success' if h.horario_fijado else 'alert-warning'}} small mt-2 mb-0"><b>Horario activo:</b> {{h.hora_inicio_default or 'NO FIJADO'}} - {{h.hora_fin_default or 'NO FIJADO'}} / Refrigerio {{h.ref_inicio_default or '--:--'}} - {{h.ref_fin_default or '--:--'}}. {% if not h.horario_fijado %}<b>Primero fija el horario desde el icono de reloj.</b>{% endif %}</div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR TRABAJADORES</button></div></form></div></div></div>
@@ -754,80 +755,30 @@ def detalle_hoja(hoja_id):
     setInterval(()=>{const x=$('dniTrab'); if(x && x.value && onlyDni(x.value).length>=8) procesarDni(x.value,false);},250);
   }
 
-  // ================== RELOJ ARRASTRABLE Y HORARIO ==================
+  // ================== HORARIO TÁCTIL POR DESLIZADOR 24H ==================
   const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
-  let campoActivo='horaInicioDefault', modo='minute', dragging=false;
+  let campoActivo='horaInicioDefault';
   function toMin(v){const p=String(v||'00:00').split(':');return (parseInt(p[0]||0,10)*60)+(parseInt(p[1]||0,10));}
-  function horasNetas(hi,hf,ri,rf){
-    let a=toMin(hi), b=toMin(hf); if(b<=a)b+=1440; let total=b-a;
-    if(ri&&rf){let c=toMin(ri), d=toMin(rf); if(d<=c)d+=1440; if(b>1440&&c<a){c+=1440;d+=1440;} total-=Math.max(0,Math.min(b,d)-Math.max(a,c));}
-    return (Math.max(0,total)/60).toFixed(2);
-  }
-  function sincHorario(){
-    const hi=$('horaInicioDefault')?.value||'06:30', hf=$('horaFinDefault')?.value||'16:30', ri=$('refInicioDefault')?.value||'12:00', rf=$('refFinDefault')?.value||'13:00';
-    [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{const e=$(id); if(e)e.value=v;});
-    const h=horasNetas(hi,hf,ri,rf); const ht=$('horasTrab'); if(ht)ht.value=h;
-    const box=$('horarioActivoTxt'); if(box)box.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+h+'. Se edita desde el icono de reloj del módulo Trabajadores.';
-  }
-  function clockFace(){const m=$('modalHora');return m?m.querySelector('.clock-face'):null;}
+  function minToTime(m){m=((parseInt(m||0,10)%1440)+1440)%1440;return pad(Math.floor(m/60))+':'+pad(m%60);}
+  function horasNetas(hi,hf,ri,rf){let a=toMin(hi), b=toMin(hf); if(b<=a)b+=1440; let total=b-a; if(ri&&rf){let c=toMin(ri), d=toMin(rf); if(d<=c)d+=1440; if(b>1440&&c<a){c+=1440;d+=1440;} total-=Math.max(0,Math.min(b,d)-Math.max(a,c));} return (Math.max(0,total)/60).toFixed(2);}
   function activeInput(){return $(campoActivo)||$('horaInicioDefault');}
-  function point(ev){return (ev.touches&&ev.touches[0])||(ev.changedTouches&&ev.changedTouches[0])||ev;}
-  function ensureClockControls(){
-    const f=clockFace(); if(!f)return;
-    if(!$('clockPickFields')){
-      const pills=document.createElement('div'); pills.id='clockPickFields'; pills.className='clock-field-pills';
-      pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button>';
-      f.insertAdjacentElement('afterend',pills);
-      const modes=document.createElement('div'); modes.id='clockPickMode'; modes.className='clock-mode';
-      modes.innerHTML='<button type="button" data-mode="minute" class="active">MIN</button><button type="button" data-mode="hour">HORA</button>';
-      pills.insertAdjacentElement('afterend',modes);
-    }
-  }
-  function pintarReloj(){
-    const f=clockFace(), input=activeInput(); if(!f||!input)return;
-    const hand=f.querySelector('.clock-hand'), bubble=f.querySelector('.clock-bubble');
-    let [hh,mm]=String(input.value||'00:00').split(':').map(x=>parseInt(x||0,10));
-    let deg=(modo==='hour')?((hh%12)*30):(mm*6), visual=deg-90;
-    if(hand)hand.style.transform='rotate('+visual+'deg)';
-    if(bubble){
-      bubble.textContent=pad(modo==='hour'?hh:mm);
-      const r=68, rad=visual*Math.PI/180, cx=90, cy=90;
-      bubble.style.left=(cx+Math.cos(rad)*r-22)+'px'; bubble.style.top=(cy+Math.sin(rad)*r-22)+'px'; bubble.style.right='auto';
-    }
-    const pills=$('clockPickFields'); if(pills)pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===campoActivo));
-    const modes=$('clockPickMode'); if(modes)modes.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.mode===modo)); const tv=$('touchClockValue'); if(tv&&input)tv.textContent=input.value;
-  }
-  function moverReloj(ev){
-    const f=clockFace(), input=activeInput(); if(!f||!input)return;
-    const e=point(ev), r=f.getBoundingClientRect();
-    let deg=Math.atan2(e.clientY-(r.top+r.height/2), e.clientX-(r.left+r.width/2))*180/Math.PI+90; if(deg<0)deg+=360;
-    let [hh,mm]=String(input.value||'00:00').split(':').map(x=>parseInt(x||0,10));
-    if(modo==='hour'){
-      let h=Math.round(deg/30)%12; if(h===0)h=12; if(hh>=12&&h<12)h+=12; if(hh<12&&h===12)h=0; hh=h;
-    }else{ mm=Math.round(deg/30)*5; if(mm>=60)mm=0; }
-    input.value=pad(hh)+':'+pad(mm); sincHorario(); pintarReloj();
-    if(ev.cancelable!==false)ev.preventDefault();
-  }
+  function sincHorario(){const hi=$('horaInicioDefault')?.value||'06:30', hf=$('horaFinDefault')?.value||'16:30', ri=$('refInicioDefault')?.value||'12:00', rf=$('refFinDefault')?.value||'13:00'; [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{const e=$(id); if(e)e.value=v;}); const h=horasNetas(hi,hf,ri,rf); const ht=$('horasTrab'); if(ht)ht.value=h; const box=$('horarioActivoTxt'); if(box)box.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+h+'.';}
+  function pintarReloj(){const input=activeInput(), tv=$('touchClockValue'), sl=$('timeSlider24'), pills=$('clockPickFields'); if(tv&&input)tv.textContent=input.value; if(sl&&input)sl.value=toMin(input.value); if(pills)pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===campoActivo));}
   function instalarReloj(){
-    const f=clockFace(); if(!f)return; ensureClockControls();
-    const pills=$('clockPickFields'); if(pills)pills.querySelectorAll('button').forEach(b=>b.onclick=()=>{campoActivo=b.dataset.target;pintarReloj();});
-    const modes=$('clockPickMode'); if(modes)modes.querySelectorAll('button').forEach(b=>b.onclick=()=>{modo=b.dataset.mode;pintarReloj();});
-    IDS.forEach(id=>{const e=$(id); if(e){e.onfocus=()=>{campoActivo=id;pintarReloj();}; e.onclick=()=>{campoActivo=id;pintarReloj();}; e.oninput=()=>{sincHorario();pintarReloj();};}});
-    if(f.dataset.clockOk!=='1'){
-      f.dataset.clockOk='1';
-      f.addEventListener('pointerdown',e=>{dragging=true;try{f.setPointerCapture(e.pointerId)}catch(_){ }moverReloj(e);});
-      f.addEventListener('pointermove',e=>{if(dragging)moverReloj(e);});
-      f.addEventListener('pointerup',()=>dragging=false); f.addEventListener('pointercancel',()=>dragging=false);
-      f.addEventListener('touchstart',e=>{dragging=true;moverReloj(e);},{passive:false});
-      document.addEventListener('touchmove',e=>{if(dragging)moverReloj(e);},{passive:false}); document.addEventListener('touchend',()=>dragging=false);
-      f.addEventListener('mousedown',e=>{dragging=true;moverReloj(e);}); document.addEventListener('mousemove',e=>{if(dragging)moverReloj(e);}); document.addEventListener('mouseup',()=>dragging=false);
+    const sl=$('timeSlider24'), pills=$('clockPickFields');
+    if(pills)pills.querySelectorAll('button').forEach(b=>b.onclick=()=>{campoActivo=b.dataset.target;pintarReloj();});
+    IDS.forEach(id=>{const e=$(id); if(e){e.readOnly=true; e.onclick=()=>{campoActivo=id;pintarReloj();}; e.onfocus=()=>{campoActivo=id;pintarReloj();};}});
+    if(sl && sl.dataset.ok!=='1'){
+      sl.dataset.ok='1';
+      sl.addEventListener('input',()=>{const i=activeInput(); if(!i)return; i.value=minToTime(sl.value); sincHorario(); pintarReloj();},true);
+      sl.addEventListener('change',()=>{sincHorario(); pintarReloj(); playOk();},true);
     }
     sincHorario(); pintarReloj();
   }
   window.aplicarHorarioRegistro=function(){sincHorario();pintarReloj();playOk();};
+  window.tocarHora=function(delta){const i=activeInput(); if(!i)return; i.value=minToTime(toMin(i.value)+delta*60); sincHorario(); pintarReloj();};
+  window.tocarMin=function(delta){const i=activeInput(); if(!i)return; i.value=minToTime(toMin(i.value)+delta); sincHorario(); pintarReloj();};
   
-  window.tocarHora=function(delta){const i=activeInput(); if(!i)return; let m=toMin(i.value)+delta*60; m=((m%1440)+1440)%1440; i.value=pad(Math.floor(m/60))+':'+pad(m%60); sincHorario(); pintarReloj();};
-  window.tocarMin=function(delta){const i=activeInput(); if(!i)return; let m=toMin(i.value)+delta; m=((m%1440)+1440)%1440; i.value=pad(Math.floor(m/60))+':'+pad(m%60); sincHorario(); pintarReloj();};
   window.abrirEditarTareo=function(id,hi,hf,ri,rf){
     const f=$('frmEditTareo'); if(!f){alert('No se pudo abrir editor.');return;}
     f.action='/tareo/'+id+'/editar-horas'; $('editHi').value=hi; $('editHf').value=hf; $('editRi').value=ri; $('editRf').value=rf;
@@ -837,13 +788,13 @@ def detalle_hoja(hoja_id):
 
   // ================== MAYÚSCULAS Y MAESTROS ACTIVIDAD/LABOR/CONSUMIDOR ==================
   document.addEventListener('input',e=>{const el=e.target;if(el && (el.tagName==='INPUT'||el.tagName==='TEXTAREA') && el.type!=='password' && el.type!=='date' && el.type!=='number' && el.id!=='dniTrab' && el.id!=='dniAvance' && el.id!=='buscarDni'){const p=el.selectionStart; el.value=String(el.value||'').toUpperCase(); try{el.setSelectionRange(p,p)}catch(_){}}},true);
-  let MAESTROS_CACHE = Array.isArray(MAESTROS_DET) ? MAESTROS_DET.slice() : [];
+  let MAESTROS_CACHE = (typeof MAESTROS_DET !== 'undefined' && Array.isArray(MAESTROS_DET)) ? MAESTROS_DET.slice() : [];
   const DEMO_MAESTROS=[{desc_actividad:'COSECHA',desc_labor:'COSECHA MANUAL',desc_consumidor:'CAMPO 01'},{desc_actividad:'COSECHA',desc_labor:'COSECHA SELECTIVA',desc_consumidor:'CAMPO 02'},{desc_actividad:'PODA',desc_labor:'PODA SANITARIA',desc_consumidor:'LOTE 01'}];
   async function cargarMaestrosSiHaceFalta(){
     try{
       const r=await fetch('/api/actividades-maestras',{cache:'no-store',credentials:'same-origin'});
       const j=await r.json();
-      if(j && j.ok && Array.isArray(j.data)){MAESTROS_CACHE=j.data;}
+      if(j && j.ok && Array.isArray(j.data) && j.data.length){MAESTROS_CACHE=j.data.map(x=>({desc_actividad:x.desc_actividad||x.actividad||x.grupo||x.ACTIVIDAD||x.DESCRIPCION_ACTIVIDAD||x.cod_actividad||'',cod_actividad:x.cod_actividad||x.codigo_actividad||'',desc_labor:x.desc_labor||x.labor||x.subgrupo||x.LABOR||x.DESCRIPCION_LABOR||x.cod_labor||'',cod_labor:x.cod_labor||x.codigo_labor||'',desc_consumidor:x.desc_consumidor||x.consumidor||x.CONSUMIDOR||x.zona||x.campo||x.cod_consumidor||'',cod_consumidor:x.cod_consumidor||x.codigo_consumidor||''}));}
     }catch(e){}
   }
   const uniq=(a)=>[...new Set((a||[]).filter(Boolean))].sort();
