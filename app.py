@@ -461,12 +461,26 @@ def detalle_hoja(hoja_id):
   const $=(id)=>document.getElementById(id);
   const pad=(n)=>String(Number(n)||0).padStart(2,'0');
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
-  function playOk(){try{beep();}catch(e){}}
+  function playOk(){
+    // Sonido compatible con Chrome/Android y fallback al <audio> global.
+    try{
+      beep();
+      const Ctx=window.AudioContext||window.webkitAudioContext;
+      if(Ctx){
+        const ctx=new Ctx(); const osc=ctx.createOscillator(); const gain=ctx.createGain();
+        osc.type='sine'; osc.frequency.value=880; gain.gain.value=0.10;
+        osc.connect(gain); gain.connect(ctx.destination); osc.start();
+        setTimeout(()=>{try{osc.stop();ctx.close();}catch(_e){}},120);
+      }
+      if(navigator.vibrate) navigator.vibrate(60);
+    }catch(e){}
+  }
   function onlyDni(v){
-    const raw=String(v||'');
+    // Soporta digitación, lector USB, QR y códigos con texto: toma el primer bloque de 8 dígitos.
+    const raw=String(v||'').trim();
     const m=raw.match(/(?:^|\D)(\d{8})(?:\D|$)/);
     const d=m?m[1]:raw.replace(/\D/g,'');
-    return d.length>=8?d.slice(-8):d;
+    return d.length>=8?d.slice(0,8):d;
   }
   window.limpiarDni=onlyDni;
 
@@ -516,6 +530,9 @@ def detalle_hoja(hoja_id):
       '<div class="queue-item"><div><b>'+dni+'</b><br><span>'+n+'</span></div><button type="button" class="btn btn-sm btn-outline-danger" onclick="workerMap.delete(\''+dni+'\');renderQueue();">×</button></div>'
     ).join('');
   };
+  function agregarWorker(dni,nombre){
+    if(!workerMap.has(dni)){workerMap.set(dni,nombre||'TRABAJADOR'); window.renderQueue();}
+  }
   function dniStatus(kind,html){
     const st=$('dniStatus'); if(!st)return;
     st.className=(kind==='ok'?'scan-ok mt-2 flash':kind==='bad'?'scan-bad mt-2 flash':'mt-2 field-help');
@@ -523,12 +540,17 @@ def detalle_hoja(hoja_id):
   }
   let dniTimer=null, dniBusy=false, dniLast='';
   async function procesarDni(valor, forzar=false){
-    const inp=$('dniTrab'); if(!inp)return;
+    const inp=$('dniTrab'); if(!inp)return false;
     const dni=onlyDni(valor || inp.value);
-    if(dni.length<8){ if(forzar) dniStatus('help','Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.'); return; }
+    if(dni.length<8){ if(forzar) dniStatus('help','Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.'); return false; }
     inp.value=dni;
-    if(!forzar && dni===dniLast)return;
-    if(dniBusy){ clearTimeout(dniTimer); dniTimer=setTimeout(()=>procesarDni(dni,true),120); return; }
+    // Si ya está en cola, no volver a consultar; solo avisar.
+    if(workerMap.has(dni)){
+      dniStatus('ok','✓ DNI ya está en pre-registro: <b>'+dni+'</b>');
+      playOk(); inp.value=''; inp.focus(); return true;
+    }
+    if(!forzar && dni===dniLast)return false;
+    if(dniBusy){ clearTimeout(dniTimer); dniTimer=setTimeout(()=>procesarDni(dni,true),90); return false; }
     dniBusy=true; dniLast=dni;
     dniStatus('ok','Buscando DNI <b>'+dni+'</b> en base trabajadores...');
     try{
@@ -536,28 +558,36 @@ def detalle_hoja(hoja_id):
       let j={ok:false,msg:'Respuesta inválida'}; try{j=await r.json();}catch(e){}
       if(!j.ok){
         dniStatus('bad','✕ '+(j.msg||'DNI no encontrado en base trabajadores')+' <b>'+dni+'</b>');
-        playOk(); inp.select(); return;
+        playOk(); inp.select(); return false;
       }
       const t=j.trabajador||{}; const nombre=t.trabajador||t.nombres||t.nombre||'TRABAJADOR';
-      if(!workerMap.has(dni)){workerMap.set(dni,nombre); window.renderQueue();}
-      dniStatus('ok','✓ Reconocido automáticamente: <b>'+nombre+'</b> · '+dni);
+      agregarWorker(dni,nombre);
+      dniStatus('ok','✓ Reconocido automáticamente: <b>'+nombre+'</b> · '+dni+' agregado al pre-registro.');
       playOk();
-      await sleep(180); inp.value=''; dniLast=''; inp.focus();
+      await sleep(120); inp.value=''; dniLast=''; inp.focus();
+      return true;
     }catch(e){
       dniStatus('bad','Error consultando trabajador. Revisa conexión o sesión.');
+      playOk(); return false;
     }finally{dniBusy=false;}
   }
   window.autoDetectarDniInline=function(el){
     const inp=el||$('dniTrab'); if(!inp)return;
     clearTimeout(dniTimer);
-    dniTimer=setTimeout(()=>procesarDni(inp.value,false),40);
+    dniTimer=setTimeout(()=>procesarDni(inp.value,false),25);
   };
   function instalarDniAuto(){
-    const inp=$('dniTrab'); if(!inp || inp.dataset.finalAuto==='1')return; inp.dataset.finalAuto='1';
-    ['input','keyup','change','paste','blur'].forEach(ev=>inp.addEventListener(ev,()=>setTimeout(()=>procesarDni(inp.value,ev!=='input'), ev==='paste'?80:5), true));
-    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key==='Tab'){procesarDni(inp.value,true); if(e.key==='Enter')e.preventDefault();} }, true);
-    setInterval(()=>{const x=$('dniTrab'); if(x && x.value && onlyDni(x.value).length>=8) procesarDni(x.value,false);},250);
+    const inp=$('dniTrab'); if(!inp)return;
+    if(inp.dataset.finalAuto!=='1'){
+      inp.dataset.finalAuto='1';
+      ['input','keyup','change','paste','blur'].forEach(ev=>inp.addEventListener(ev,()=>setTimeout(()=>procesarDni(inp.value,ev!=='input'), ev==='paste'?80:1), true));
+      inp.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key==='Tab'){procesarDni(inp.value,true); if(e.key==='Enter')e.preventDefault();} }, true);
+    }
+    if(!window.__dniAutoInterval){window.__dniAutoInterval=setInterval(()=>{const x=$('dniTrab'); if(x && x.value && onlyDni(x.value).length>=8) procesarDni(x.value,false);},150);}
   }
+  // Delegado: funciona aunque Bootstrap cree/abra el modal después o el lector USB pegue el código de golpe.
+  document.addEventListener('input',e=>{if(e.target&&e.target.id==='dniTrab')window.autoDetectarDniInline(e.target);},true);
+  document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='dniTrab'&&(e.key==='Enter'||e.key==='Tab')){procesarDni(e.target.value,true); if(e.key==='Enter')e.preventDefault();}},true);
 
   // ================== RELOJ ARRASTRABLE Y HORARIO ==================
   const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
@@ -655,7 +685,16 @@ def detalle_hoja(hoja_id):
     if(e.target&&e.target.id==='modalLabor'){instalarMaestros();}
   });
   document.addEventListener('DOMContentLoaded',()=>{instalarDniAuto();instalarReloj();instalarMaestros();});
-  document.addEventListener('submit',e=>{if(e.target&&e.target.id==='frmTrab'){sincHorario(); window.renderQueue();}});
+  document.addEventListener('submit',e=>{
+    if(e.target&&e.target.id==='frmTrab'){
+      sincHorario(); window.renderQueue();
+      const inp=$('dniTrab');
+      // Evita que el ENTER del lector USB guarde antes de terminar la detección automática.
+      if(inp && onlyDni(inp.value).length>=8 && workerMap.size===0){
+        e.preventDefault(); procesarDni(inp.value,true).then(()=>{window.renderQueue();});
+      }
+    }
+  });
 })();
 </script>
 
