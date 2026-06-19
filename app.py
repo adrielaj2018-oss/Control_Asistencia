@@ -71,6 +71,35 @@ def scalar(sql, params=()):
 def now_str(): return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 def today_str(): return date.today().strftime("%Y-%m-%d")
 
+
+def calcular_horas_laborales(hora_inicio, hora_fin, ref_inicio=None, ref_fin=None):
+    """Calcula horas netas entre inicio/fin, restando refrigerio si cruza el rango.
+    Soporta turno noche cuando la hora fin es menor o igual que inicio.
+    """
+    def to_min(v):
+        try:
+            hh, mm = str(v or "00:00")[:5].split(":")
+            return int(hh) * 60 + int(mm)
+        except Exception:
+            return 0
+    ini = to_min(hora_inicio)
+    fin = to_min(hora_fin)
+    if fin <= ini:
+        fin += 24 * 60
+    total = max(0, fin - ini)
+    if ref_inicio and ref_fin:
+        ri = to_min(ref_inicio)
+        rf = to_min(ref_fin)
+        if rf <= ri:
+            rf += 24 * 60
+        # Si la jornada cruza medianoche y el refrigerio quedó antes del inicio, moverlo al día siguiente.
+        if fin > 24 * 60 and ri < ini:
+            ri += 24 * 60
+            rf += 24 * 60
+        cruce = max(0, min(fin, rf) - max(ini, ri))
+        total -= cruce
+    return round(max(0, total) / 60, 2)
+
 def _add_column_if_missing(cur, table, column, ddl):
     """Migración segura para SQLite/PostgreSQL."""
     try:
@@ -423,7 +452,7 @@ def detalle_hoja(hoja_id):
     <div class="modal fade" id="modalCopiar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('copiar_labor_hoja', hoja_id=h.id, tab=tab)}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-files"></i> Copiar labor existente</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small">Selecciona el documento/labor que deseas copiar. No se copiará nada hasta presionar <b>COPIAR SELECCIONADO</b>.</div><div class="copy-list">{% for l in labores %}<label class="d-block mb-2"><input type="radio" name="labor_id_origen" value="{{l.id}}" required> <b>{{l.labor}}</b><br><span class="small text-muted">{{l.grupo}} / {{l.subgrupo}} / {{l.turno}} / {{l.tipo_tareo}}</span></label>{% endfor %}</div><label class="form-label mt-2">Nuevo nombre de labor (opcional)</label><input name="labor_nueva" class="form-control" placeholder="Dejar vacío para copiar igual"></div><div class="modal-footer"><button class="btn btn-green w-100">COPIAR SELECCIONADO</button></div></form></div></div></div>
     <div class="modal fade" id="modalBuscar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-search"></i> Buscar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input id="buscarDni" class="form-control mb-2" placeholder="DNI / QR / código barras"><button class="btn btn-green w-100" onclick="buscarTrabajadorLibre()">BUSCAR</button><div id="buscarResultado" class="alert alert-light border mt-2">Esperando búsqueda.</div></div></div></div></div>
     <div class="modal fade" id="modalHora" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-clock"></i> Horarios de trabajo y refrigerio</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="clock-face"><span class="clock-num" style="top:8px;left:86px">0</span><span class="clock-num" style="top:25px;right:45px">5</span><span class="clock-bubble">10</span><span class="clock-num" style="top:88px;right:20px">15</span><span class="clock-num" style="bottom:45px;right:38px">20</span><span class="clock-num" style="bottom:18px;left:86px">30</span><span class="clock-num" style="bottom:45px;left:38px">35</span><span class="clock-num" style="top:88px;left:20px">40</span><span class="clock-num" style="top:55px;left:28px">50</span><span class="clock-num" style="top:28px;left:55px">55</span><span class="clock-hand"></span><span class="clock-dot"></span></div><div class="alert alert-success small"><b>Turno NOCHE:</b> recomendado 22:00 a 06:00. Puedes modificarlo según tu operación.</div><div class="row g-2"><div class="col-6"><label class="form-label">Inicio trabajo</label><input id="horaInicioDefault" type="time" class="form-control" value="06:30"></div><div class="col-6"><label class="form-label">Fin trabajo</label><input id="horaFinDefault" type="time" class="form-control" value="16:30"></div><div class="col-6"><label class="form-label">Inicio refrigerio</label><input id="refInicioDefault" type="time" class="form-control" value="12:00"></div><div class="col-6"><label class="form-label">Fin refrigerio</label><input id="refFinDefault" type="time" class="form-control" value="13:00"></div></div><button class="btn btn-green w-100 mt-3" type="button" onclick="aplicarHorarioRegistro()" data-bs-dismiss="modal">APLICAR AL REGISTRO</button></div></div></div></div>
-    <div class="modal fade" id="modalRegistro" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='trabajadores')}}" id="frmTrab"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-person-plus"></i> Registrar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniTrab" class="form-control" placeholder="Escanee o digite DNI" autocomplete="off" inputmode="numeric" maxlength="30" oninput="autoDetectarDniInline(this)" onkeyup="autoDetectarDniInline(this)" onchange="autoDetectarDniInline(this)"><button type="button" class="btn btn-green" onclick="abrirScanner('readerTrab','dniTrab')"><i class="bi bi-upc-scan"></i></button></div><div id="readerTrab" style="display:none;margin-top:8px"></div><div id="dniStatus" class="mt-2 field-help">Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.</div><input type="hidden" name="dnis_masivos" id="dnisMasivos"><div class="queue-title">PRE-REGISTRO DE TRABAJADORES</div><div id="workerQueue" class="worker-queue"><div class="text-muted small text-center">Aún no hay trabajadores detectados.</div></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.grupo}} / {{l.subgrupo}} / {{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><input name="turno" id="turnoTrab" type="hidden" value="DIA"><input name="tipo_tareo" type="hidden" value="JORNAL"><input name="hora_inicio" id="horaInicioTrab" type="hidden" value="06:30"><input name="hora_fin" id="horaFinTrab" type="hidden" value="16:30"><input name="ref_inicio" id="refInicioTrab" type="hidden" value="12:00"><input name="ref_fin" id="refFinTrab" type="hidden" value="13:00"><input name="horas" type="hidden" value="9.75"><input name="cantidad" type="hidden" value="0.00"><div class="alert alert-success small mt-2 mb-0"><b>Horario activo:</b> 06:30 - 16:30 / Refrigerio 12:00 - 13:00. Se edita desde el icono de reloj del módulo Trabajadores.</div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR TRABAJADORES</button></div></form></div></div></div>
+    <div class="modal fade" id="modalRegistro" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='trabajadores')}}" id="frmTrab"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-person-plus"></i> Registrar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniTrab" class="form-control" placeholder="Escanee o digite DNI" autocomplete="off" inputmode="numeric" maxlength="30" oninput="autoDetectarDniInline(this)" onkeyup="autoDetectarDniInline(this)" onchange="autoDetectarDniInline(this)"><button type="button" class="btn btn-green" onclick="abrirScanner('readerTrab','dniTrab')"><i class="bi bi-upc-scan"></i></button></div><div id="readerTrab" style="display:none;margin-top:8px"></div><div id="dniStatus" class="mt-2 field-help">Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.</div><input type="hidden" name="dnis_masivos" id="dnisMasivos"><div class="queue-title">PRE-REGISTRO DE TRABAJADORES</div><div id="workerQueue" class="worker-queue"><div class="text-muted small text-center">Aún no hay trabajadores detectados.</div></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.grupo}} / {{l.subgrupo}} / {{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><input name="turno" id="turnoTrab" type="hidden" value="DIA"><input name="tipo_tareo" type="hidden" value="JORNAL"><input name="hora_inicio" id="horaInicioTrab" type="hidden" value="06:30"><input name="hora_fin" id="horaFinTrab" type="hidden" value="16:30"><input name="ref_inicio" id="refInicioTrab" type="hidden" value="12:00"><input name="ref_fin" id="refFinTrab" type="hidden" value="13:00"><input name="horas" id="horasTrab" type="hidden" value="9.50"><input name="cantidad" type="hidden" value="0.00"><div id="horarioActivoTxt" class="alert alert-success small mt-2 mb-0"><b>Horario activo:</b> 06:30 - 16:30 / Refrigerio 12:00 - 13:00. Se edita desde el icono de reloj del módulo Trabajadores.</div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR TRABAJADORES</button></div></form></div></div></div>
     <div class="modal fade" id="modalAvance" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='rendimiento')}}"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-upc-scan"></i> Registrar avance / lectura</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniAvance" class="form-control" placeholder="Escanee o digite DNI" required><button type="button" class="btn btn-green" onclick="abrirScanner('readerAvance','dniAvance')"><i class="bi bi-upc-scan"></i></button></div><div id="readerAvance" style="display:none;margin-top:8px"></div></div><label class="form-label">LABOR</label><select name="labor_id" class="form-select mb-2">{% for l in labores %}<option value="{{l.id}}">{{l.labor}} / {{l.turno}} / {{l.tipo_tareo}}</option>{% endfor %}</select><div class="row g-2"><div class="col-6"><label class="form-label">A. DIURNO</label><input name="cantidad" type="number" step="0.01" class="form-control" value="1.00"></div><div class="col-6"><label class="form-label">A. NOCT.</label><input name="a_noct" type="number" step="0.01" class="form-control" value="0.00"></div><div class="col-6"><label class="form-label">UNIDAD</label><select name="unidad" class="form-select"><option>BALDE</option><option>KG</option><option>JABA</option><option>UNIDAD</option></select></div><div class="col-6"><label class="form-label">MÉTODO</label><select name="metodo" class="form-select"><option>QR/CÓDIGO</option><option>DIGITACIÓN</option><option>LECTOR USB</option></select></div></div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR AVANCE</button></div></form></div></div></div>
     <script>
       function limpiarDni(v){let raw=(v||'').toString();let m=raw.match(/(?:^|\D)(\d{8})(?:\D|$)/);let d=m?m[1]:raw.replace(/\D/g,'');return d.length>=8?d.slice(-8):d;}
@@ -611,6 +640,49 @@ def detalle_hoja(hoja_id):
         }
       });
 
+      
+      // ===== FIX FINAL: reloj arrastrable + horarios sincronizados + DNI automático =====
+      function calcHorasNetasJS(hi,hf,ri,rf){
+        const tm=v=>{let [h,m]=String(v||'00:00').split(':').map(x=>parseInt(x||0)); return h*60+m;};
+        let a=tm(hi), b=tm(hf); if(b<=a)b+=1440; let total=Math.max(0,b-a);
+        if(ri&&rf){let c=tm(ri), d=tm(rf); if(d<=c)d+=1440; if(b>1440 && c<a){c+=1440;d+=1440;} total-=Math.max(0, Math.min(b,d)-Math.max(a,c));}
+        return Math.max(0,total/60).toFixed(2);
+      }
+      function sincronizarHorarioUI(){
+        const hi=document.getElementById('horaInicioDefault')?.value||'06:30', hf=document.getElementById('horaFinDefault')?.value||'16:30', ri=document.getElementById('refInicioDefault')?.value||'12:00', rf=document.getElementById('refFinDefault')?.value||'13:00';
+        [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{let el=document.getElementById(id); if(el)el.value=v;});
+        const horas=calcHorasNetasJS(hi,hf,ri,rf); let ht=document.getElementById('horasTrab'); if(ht)ht.value=horas;
+        let box=document.getElementById('horarioActivoTxt'); if(box)box.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+horas+'. Se edita desde el icono de reloj del módulo Trabajadores.';
+      }
+      function aplicarHorarioRegistro(){sincronizarHorarioUI(); try{beep();}catch(e){}}
+      function instalarRelojFinal(){
+        const modal=document.getElementById('modalHora'), face=modal?.querySelector('.clock-face'); if(!face)return;
+        face.dataset.v7=''; face.dataset.v8='';
+        const hand=face.querySelector('.clock-hand'), bubble=face.querySelector('.clock-bubble');
+        if(!modal.querySelector('#clockPickFields')){
+          const pills=document.createElement('div'); pills.id='clockPickFields'; pills.className='clock-field-pills';
+          pills.innerHTML='<button type="button" data-target="horaInicioDefault">Inicio trabajo</button><button type="button" data-target="horaFinDefault">Fin trabajo</button><button type="button" data-target="refInicioDefault">Inicio refrigerio</button><button type="button" data-target="refFinDefault">Fin refrigerio</button>';
+          face.insertAdjacentElement('afterend',pills);
+          const modes=document.createElement('div'); modes.id='clockPickMode'; modes.className='clock-mode'; modes.innerHTML='<button type="button" class="active" data-mode="minute">MIN</button><button type="button" data-mode="hour">HORA</button>';
+          pills.insertAdjacentElement('afterend',modes);
+        }
+        const pills=modal.querySelector('#clockPickFields'), modes=modal.querySelector('#clockPickMode'); let mode='minute';
+        function setActive(id){activeTimeInput=document.getElementById(id)||document.getElementById('horaInicioDefault'); pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===id)); pintarDesdeCampo();}
+        function pintarDesdeCampo(){const inp=activeTimeInput||document.getElementById('horaInicioDefault'); let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||0)); let deg=(mode==='hour'?((hh%12)*30):(mm*6)); if(hand)hand.style.transform='rotate('+(deg-90)+'deg)'; if(bubble)bubble.textContent=String(mode==='hour'?hh:mm).padStart(2,'0');}
+        pills.querySelectorAll('button').forEach(b=>b.onclick=()=>setActive(b.dataset.target));
+        modes.querySelectorAll('button').forEach(b=>b.onclick=()=>{mode=b.dataset.mode; modes.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b)); pintarDesdeCampo();});
+        modal.querySelectorAll('input[type=time]').forEach(inp=>{inp.onfocus=()=>setActive(inp.id); inp.onclick=()=>setActive(inp.id); inp.oninput=()=>{sincronizarHorarioUI(); pintarDesdeCampo();};});
+        let dragging=false;
+        function move(ev){const r=face.getBoundingClientRect(), e=ev.touches?ev.touches[0]:ev, cx=r.left+r.width/2, cy=r.top+r.height/2; let deg=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI+90; if(deg<0)deg+=360; const inp=activeTimeInput||document.getElementById('horaInicioDefault'); let [hh,mm]=String(inp.value||'00:00').split(':').map(x=>parseInt(x||0)); if(mode==='hour'){let h=Math.round(deg/30)%12; if(h===0)h=12; if(hh>=12&&h<12)h+=12; if(hh<12&&h===12)h=0; hh=h;}else{mm=Math.round((deg/6)/5)*5; if(mm>=60)mm=0;} inp.value=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); if(hand)hand.style.transform='rotate('+(deg-90)+'deg)'; if(bubble)bubble.textContent=String(mode==='hour'?hh:mm).padStart(2,'0'); sincronizarHorarioUI(); ev.preventDefault();}
+        face.onpointerdown=e=>{dragging=true; face.setPointerCapture&&face.setPointerCapture(e.pointerId); move(e);};
+        face.onpointermove=e=>{if(dragging)move(e);}; face.onpointerup=()=>dragging=false; face.onpointercancel=()=>dragging=false;
+        face.ontouchstart=e=>{dragging=true; move(e);}; face.ontouchmove=e=>{if(dragging)move(e);}; face.ontouchend=()=>dragging=false;
+        setActive((activeTimeInput&&activeTimeInput.id)||'horaInicioDefault'); sincronizarHorarioUI();
+      }
+      document.addEventListener('shown.bs.modal', e=>{ if(e.target&&e.target.id==='modalHora'){setTimeout(instalarRelojFinal,80);} if(e.target&&e.target.id==='modalRegistro'){sincronizarHorarioUI(); const inp=document.getElementById('dniTrab'); if(inp){inp.focus();}} });
+      document.addEventListener('input', e=>{ if(['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'].includes(e.target.id)) sincronizarHorarioUI(); });
+      document.addEventListener('submit', e=>{ if(e.target&&e.target.id==='frmTrab') sincronizarHorarioUI(); });
+
       document.addEventListener('DOMContentLoaded',()=>{bindClock();bindClockV7();bindClockV8();bindDniAuto();bindModalMaestros();});
     </script>
     """
@@ -685,6 +757,8 @@ def guardar_registro_hoja(hoja_id, tab):
     hora_fin = request.form.get('hora_fin') or ('06:00' if turno == 'NOCHE' else '16:30')
     ref_inicio = request.form.get('ref_inicio') or '12:00'
     ref_fin = request.form.get('ref_fin') or '13:00'
+    if tab == 'trabajadores':
+        horas = calcular_horas_laborales(hora_inicio, hora_fin, ref_inicio, ref_fin)
     unidad = limpiar_texto(request.form.get('unidad') or ('BALDE' if tab == 'rendimiento' else tipo_tareo))
     metodo = limpiar_texto(request.form.get('metodo') or 'DIGITACIÓN')
 
