@@ -329,6 +329,29 @@ input[type="text"], input:not([type]), textarea { text-transform:uppercase; }
 /* PATCH URGENTE: coherencia horario, avance auto, registros compactos */
 .trabajador-card-ref{padding:7px 10px!important;margin:5px 4px!important;border-width:2px!important}.trabajador-card-ref .worker-title b{font-size:12px!important}.trabajador-grid-ref{gap:7px 6px!important;margin-top:9px!important}.trabajador-grid-ref .time-box,.trabajador-grid-ref .metric-box{height:28px!important;justify-content:center!important;text-align:center!important;font-size:12px!important}.trabajador-grid-ref .metric-box{font-size:14px!important;background:#daf5dc!important}.trabajador-grid-ref label{font-size:7.5px!important}.avance-card-ref{padding:8px 10px!important;margin:6px 10px!important}.avance-card-ref .worker-title b{font-size:12px!important}.avance-grid .mini-badge{height:26px!important;display:flex;align-items:center;justify-content:center}.labor-card-compact{padding:10px 13px!important}.labor-card-compact .labor-main{font-size:16px!important}.labor-card-compact .resp-main{font-size:14px!important}.page-card{max-width:620px!important;margin:0 auto!important}.phone-wrap{max-width:650px!important}#modalHora input.locked-input{background:#fff!important;cursor:text!important}.scan-ok{background:#e7f7ea!important;border-color:#8ad092!important}.scan-bad{background:#fee2e2!important;border-color:#fca5a5!important;color:#991b1b!important}
 @media(max-width:720px){.phone-wrap{max-width:100%!important}.page-card{max-width:100%!important}.trabajador-card-ref{padding:6px 8px!important}.trabajador-grid-ref{gap:6px 5px!important}.trabajador-grid-ref .time-box,.trabajador-grid-ref .metric-box{height:26px!important;font-size:11px!important}.trabajador-grid-ref .metric-box{font-size:13px!important}.avance-card-ref{margin:5px 8px!important}}
+
+
+/* ===== URGENTE 249: MODO APP ANGOSTO SIN CORTE EN DESKTOP/CELULAR ===== */
+html,body{width:100%!important;min-height:100%!important;margin:0!important;overflow-x:hidden!important;background:#3b3b3b!important;}
+.app-bg{width:390px!important;max-width:100vw!important;min-height:100vh!important;margin:0 auto!important;background:#fff!important;overflow-x:hidden!important;box-shadow:0 0 0 1px rgba(0,0,0,.04)!important;}
+.shell{width:100%!important;max-width:390px!important;margin:0 auto!important;padding:0!important;overflow-x:hidden!important;}
+.phone-wrap,.page-card,.report-wrap{width:100%!important;max-width:390px!important;margin-left:auto!important;margin-right:auto!important;}
+.desktop-grid{display:block!important;width:100%!important;max-width:390px!important;margin:0 auto!important;}
+.desk-panel,.home-desktop-list{display:none!important;}
+.green-hero{width:100%!important;border-radius:0 0 18px 18px!important;}
+.top-actions{display:flex!important;flex-wrap:nowrap!important;gap:10px!important;justify-content:center!important;margin-left:8px!important;margin-right:8px!important;}
+.top-actions .tile{width:96px!important;min-width:96px!important;height:82px!important;}
+.page-card{border-left:0!important;border-right:0!important;border-radius:0!important;}
+.header-title{font-size:18px!important;line-height:1.1!important;margin:12px 8px 12px!important;}
+.tareo-list-page,.desktop-pad{padding-bottom:18px!important;}
+.toolstrip{margin-left:10px!important;margin-right:10px!important;max-width:calc(100% - 20px)!important;}
+.info-bar{margin-left:10px!important;margin-right:10px!important;max-width:calc(100% - 20px)!important;}
+.worker-card,.swipe-wrap,.labor-card-compact,.trabajador-card-ref,.avance-card-ref{max-width:calc(100% - 20px)!important;margin-left:10px!important;margin-right:10px!important;}
+.modal-dialog{max-width:370px!important;margin:.65rem auto!important;}
+.modal-content{max-width:370px!important;margin:0 auto!important;}
+.bottom-sync{left:calc(50% - 185px)!important;max-width:190px!important;}
+.bottom-out{right:calc(50% - 185px)!important;}
+@media(max-width:430px){.app-bg,.shell,.phone-wrap,.page-card,.desktop-grid{width:100%!important;max-width:100%!important}.modal-dialog,.modal-content{max-width:94vw!important}.top-actions .tile{width:30%!important;min-width:0!important}.bottom-sync{left:10px!important}.bottom-out{right:12px!important}}
 </style></head><body class="{{ 'login-page' if not session.get('usuario') else '' }}"><div class="app-bg"><main class="shell">
 {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="phone-wrap mt-2">{% for cat,msg in messages %}<div class="alert alert-{{cat}} shadow-sm">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
 {{ body|safe }}</main></div>
