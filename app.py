@@ -546,46 +546,78 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
 </script>
 
 
-
 <script>
-/* PATCH 250 FINAL: horario sin duplicar + avance en cola final */
+/* === PATCH 250 FINAL REAL: horario aislado, cámara robusta, avance por lote y edición === */
 (function(){
+  'use strict';
   const $=id=>document.getElementById(id);
-  const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
-  let activo='horaInicioDefault';
-  function pad(n){return String(Number(n)||0).padStart(2,'0');}
-  function toMin(v){let m=String(v||'00:00').match(/^(\d{1,2}):(\d{2})$/); if(!m)return 0; let h=Math.max(0,Math.min(23,parseInt(m[1]||0,10))), mi=Math.max(0,Math.min(59,parseInt(m[2]||0,10))); return h*60+mi;}
-  function minToTime(x){x=Math.max(0,Math.min(1435,Math.round((parseInt(x||0,10))/5)*5)); return pad(Math.floor(x/60))+':'+pad(x%60);}
-  function setActivo(id){ if(IDS.includes(id)) activo=id; IDS.forEach(x=>{let e=$(x); if(e)e.classList.toggle('border-success',x===activo);}); let s=$('timeSlider24'), v=$('touchClockValue'), e=$(activo); if(e&&s)s.value=toMin(e.value); if(e&&v)v.textContent=e.value; let box=$('clockPickFields'); if(box)box.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===activo)); }
-  function syncTrab(){ let map={horaInicioTrab:'horaInicioDefault',horaFinTrab:'horaFinDefault',refInicioTrab:'refInicioDefault',refFinTrab:'refFinDefault'}; Object.entries(map).forEach(([a,b])=>{let t=$(a), f=$(b); if(t&&f)t.value=f.value;}); }
-  function aplicarMin(m){ let e=$(activo); if(!e)return; e.value=minToTime(m); let v=$('touchClockValue'); if(v)v.textContent=e.value; syncTrab(); setActivo(activo); }
-  function instalar(){ let box=$('clockPickFields'); if(box) box.querySelectorAll('button').forEach(btn=>{['pointerdown','mousedown','click','touchstart'].forEach(ev=>btn.addEventListener(ev,e=>{e.preventDefault(); e.stopImmediatePropagation(); setActivo(btn.dataset.target);},true));});
-    IDS.forEach(id=>{let e=$(id); if(!e)return; e.readOnly=false; ['pointerdown','mousedown','click','focus','touchstart'].forEach(ev=>e.addEventListener(ev,evv=>{evv.stopImmediatePropagation(); setActivo(id);},true)); e.addEventListener('input',()=>{e.value=e.value.replace(/[^0-9:]/g,'').slice(0,5); if(/^\d{1,2}:\d{2}$/.test(e.value)){setActivo(id); syncTrab();}},true); let sx=0, sm=0; e.addEventListener('pointerdown',ev=>{sx=ev.clientX; sm=toMin(e.value); e.setPointerCapture&&e.setPointerCapture(ev.pointerId);},true); e.addEventListener('pointermove',ev=>{if(ev.buttons!==1)return; ev.preventDefault(); let delta=Math.round((ev.clientX-sx)/8)*5; e.value=minToTime(sm+delta); setActivo(id); syncTrab();},true);});
-    let s=$('timeSlider24'); if(s){['pointerdown','pointermove','mousedown','mousemove','touchstart','touchmove','click','input','change'].forEach(name=>s.addEventListener(name,e=>{ if(name.includes('move') && !(e.buttons||e.touches))return; e.preventDefault(); e.stopImmediatePropagation(); let rect=s.getBoundingClientRect(); let x=e.touches&&e.touches[0]?e.touches[0].clientX:e.clientX; let val=s.value; if(typeof x==='number'&&rect.width>0){val=Math.round(((Math.max(0,Math.min(rect.width,x-rect.left))/rect.width)*1435)/5)*5;} aplicarMin(val);},true));}
-    setActivo(activo); syncTrab();
+  const pad=n=>String(Number(n)||0).padStart(2,'0');
+  function onlyDni(v){const d=String(v||'').replace(/\D/g,'');return d.length>=8?d.slice(-8):d;}
+  function normTime(v){let s=String(v||'').trim().replace(/[^0-9:]/g,''); if(/^\d{3,4}$/.test(s)){s=s.padStart(4,'0'); s=s.slice(0,2)+':'+s.slice(2);} let m=s.match(/^(\d{1,2}):(\d{1,2})$/); if(!m)return null; let h=Math.max(0,Math.min(23,parseInt(m[1]||0,10))); let mi=Math.max(0,Math.min(59,parseInt(m[2]||0,10))); return pad(h)+':'+pad(mi);}
+  function toMin(v){let t=normTime(v)||'00:00', p=t.split(':'); return parseInt(p[0],10)*60+parseInt(p[1],10);}
+  function minToTime(m){m=((Math.round(Number(m||0)/5)*5)%1440+1440)%1440; return pad(Math.floor(m/60))+':'+pad(m%60);}
+  function calcFromPointer(sl,ev){let r=sl.getBoundingClientRect(); let x=(ev.touches&&ev.touches[0])?ev.touches[0].clientX:ev.clientX; if(typeof x==='number'&&r.width>0){let pct=Math.max(0,Math.min(1,(x-r.left)/r.width)); return Math.round((pct*1435)/5)*5;} return Number(sl.value||0);}
+  function installHorarioFinal(){
+    const modal=$('modalHora'); if(!modal)return;
+    const ids=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
+    let active='horaInicioDefault';
+    // clonar controles para eliminar listeners antiguos que estaban duplicando inicio/fin
+    ids.forEach(id=>{let e=$(id); if(e && e.dataset.final250!=='1'){let c=e.cloneNode(true); c.dataset.final250='1'; e.parentNode.replaceChild(c,e);}});
+    let oldSlider=$('timeSlider24'); if(oldSlider && oldSlider.dataset.final250!=='1'){let c=oldSlider.cloneNode(true); c.dataset.final250='1'; oldSlider.parentNode.replaceChild(c,oldSlider);}
+    const box=$('clockPickFields'); if(box && box.dataset.final250!=='1'){let c=box.cloneNode(true); c.dataset.final250='1'; box.parentNode.replaceChild(c,box);}
+    function inp(){return $(active)||$('horaInicioDefault');}
+    function sync(){
+      const hi=$('horaInicioDefault')?.value||'06:30', hf=$('horaFinDefault')?.value||'16:30', ri=$('refInicioDefault')?.value||'12:00', rf=$('refFinDefault')?.value||'13:00';
+      [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{let e=$(id); if(e)e.value=v;});
+      let a=toMin(hi), b=toMin(hf); if(b<=a)b+=1440; let c=toMin(ri), d=toMin(rf); if(d<=c)d+=1440; if(b>1440 && c<a){c+=1440; d+=1440;} let ref=Math.max(0,Math.min(b,d)-Math.max(a,c)); let total=Math.max(0,(b-a)-ref)/60;
+      let h=$('horasTrab'); if(h)h.value=total.toFixed(2);
+      let t=$('horarioActivoTxt'); if(t)t.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+total.toFixed(2)+'.';
+    }
+    function paint(){let e=inp(), sl=$('timeSlider24'), tv=$('touchClockValue'); if(e&&sl)sl.value=toMin(e.value); if(e&&tv)tv.textContent=e.value; let b=$('clockPickFields'); if(b)[...b.querySelectorAll('button')].forEach(x=>x.classList.toggle('active',x.dataset.target===active)); ids.forEach(id=>$(id)?.classList.toggle('border-success',id===active));}
+    function setActive(id){ if(ids.includes(id)) active=id; paint(); try{$(active).focus({preventScroll:true});}catch(e){} }
+    function setVal(v){let e=inp(); if(!e)return; e.value=minToTime(v); sync(); paint();}
+    ids.forEach(id=>{let e=$(id); if(!e)return; e.readOnly=false; e.classList.add('time-draggable'); e.setAttribute('inputmode','numeric'); e.onclick=()=>setActive(id); e.onfocus=()=>setActive(id); e.onpointerdown=()=>setActive(id); e.onchange=()=>{let t=normTime(e.value); if(t)e.value=t; sync(); paint();}; e.onblur=e.onchange;
+      let sx=0,sv=0,drag=false; e.addEventListener('pointerdown',ev=>{sx=ev.clientX; sv=toMin(e.value); drag=true; setActive(id); try{e.setPointerCapture(ev.pointerId)}catch(_){}}); e.addEventListener('pointermove',ev=>{if(!drag)return; let dx=ev.clientX-sx; if(Math.abs(dx)>2){setVal(sv+Math.round(dx/6)*5); ev.preventDefault();}}, {passive:false}); e.addEventListener('pointerup',()=>{drag=false;});
+    });
+    let b=$('clockPickFields'); if(b)[...b.querySelectorAll('button')].forEach(btn=>{btn.onclick=ev=>{ev.preventDefault();setActive(btn.dataset.target)}; btn.onpointerdown=ev=>{ev.preventDefault();setActive(btn.dataset.target)};});
+    let sl=$('timeSlider24'); if(sl){sl.style.pointerEvents='auto'; sl.style.touchAction='none'; const handler=ev=>{if(ev.type.includes('move') && !(ev.buttons||ev.touches))return; ev.preventDefault&&ev.preventDefault(); setVal(calcFromPointer(sl,ev));}; ['pointerdown','pointermove','touchstart','touchmove','click','input','change'].forEach(n=>sl.addEventListener(n,handler,{passive:false}));}
+    setActive(active); sync();
   }
-  document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalHora')setTimeout(instalar,50);},true);
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(instalar,200));
-})();
-
-(function(){
-  const $=id=>document.getElementById(id);
-  let cola=[]; let lastKey='';
-  function dni(v){const d=String(v||'').replace(/\D/g,''); return d.length>=8?d.slice(-8):d;}
-  function render(){let box=$('avanceQueue'), h=$('avanceItemsJson'); if(h)h.value=JSON.stringify(cola); if(!box)return; if(!cola.length){box.innerHTML='<div class="text-muted small text-center">Lee/digita DNI y cantidad. Se acumula aquí hasta GUARDAR AVANCE.</div>';return;} box.innerHTML=cola.map((x,i)=>'<div class="queue-item"><div><b>'+x.dni+'</b><br><span>'+x.trabajador+'</span></div><div><b>'+Number(x.cantidad).toFixed(2)+'</b></div><button type="button" class="btn btn-sm btn-outline-danger" onclick="window.quitarAvanceTmp('+i+')">×</button></div>').join('');}
-  window.quitarAvanceTmp=function(i){cola.splice(i,1);render();};
-  function status(ok,msg){let e=$('avanceTrabStatus'); if(e){e.className=ok?'scan-ok mt-2':'scan-bad mt-2'; e.innerHTML=msg;}}
-  function hoja(){let f=$('frmAvance'); let m=f&&String(f.action||'').match(/\/hoja\/(\d+)\//); return m?m[1]:'';}
-  async function validar(add){let input=$('dniAvance'), lab=$('avanceLaborId'); if(!input||!lab)return false; let d=dni(input.value); if(d.length<8){if(add)status(false,'Digite/escanee un DNI válido de 8 dígitos.'); return false;} input.value=d; try{let r=await fetch('/api/trabajador-labor/'+hoja()+'/'+lab.value+'/'+d,{cache:'no-store',credentials:'same-origin'}); let j=await r.json(); if(!j.ok){status(false,'✕ '+(j.msg||'Trabajador no registrado en esta labor.')); return false;} status(true,'✓ Trabajador registrado en esta labor: <b>'+j.trabajador.trabajador+'</b>'); if(add)agregar(j.trabajador.trabajador); return true;}catch(e){status(false,'No se pudo validar trabajador.'); return false;}}
-  function cantidadDesdeCodigo(){let c=$('codigoAvance'), q=$('cantidadAvance'); if(!c||!q)return; let txt=String(c.value||''); let m=txt.match(/(\d+(?:[\.,]\d+)?)(?!.*\d)/); if(m){q.value=Number(m[1].replace(',','.')).toFixed(2); let b=$('cantidadDetectada'); if(b){b.style.display='block'; b.innerHTML='Cantidad detectada: <b>'+q.value+'</b>';}}}
-  function agregar(nombre){let d=dni($('dniAvance')?.value), q=parseFloat($('cantidadAvance')?.value||'0'); if(!d||q<=0)return; let key=d+'|'+q+'|'+($('codigoAvance')?.value||''); if(key===lastKey)return; lastKey=key; let ex=cola.find(x=>x.dni===d); if(ex){ex.cantidad=Number(ex.cantidad)+q;} else cola.push({dni:d,trabajador:nombre||d,cantidad:q,codigo:($('codigoAvance')?.value||'')}); render(); try{beep();}catch(_){ } if($('codigoAvance'))$('codigoAvance').value=''; if($('cantidadAvance'))$('cantidadAvance').value='1.00'; setTimeout(()=>{lastKey='';},500);}
-  document.addEventListener('input',e=>{if(e.target&&e.target.id==='dniAvance')validar(false); if(e.target&&e.target.id==='codigoAvance'){cantidadDesdeCodigo(); validar(true);} },true);
-  document.addEventListener('keydown',e=>{if(e.target&&['dniAvance','codigoAvance','cantidadAvance'].includes(e.target.id)&&(e.key==='Enter'||e.key==='Tab')){validar(true); if(e.key==='Enter')e.preventDefault();}},true);
-  document.addEventListener('blur',e=>{if(e.target&&['codigoAvance','cantidadAvance'].includes(e.target.id))validar(true);},true);
-  document.addEventListener('submit',e=>{if(e.target&&e.target.id==='frmAvance'){render(); if(!cola.length){e.preventDefault(); status(false,'Agrega al menos un avance al pre-registro antes de guardar.');}}},true);
-  document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalAvance'){cola=[];render();setTimeout(()=>validar(false),80);}},true);
+  // Reemplazo robusto de cámara. Escanea QR/barra y dispara input/change para trabajador y avance.
+  window.abrirScanner=async function(readerId,inputId){
+    const box=$(readerId), input=$(inputId); if(!box||!input)return;
+    box.style.display='block'; box.innerHTML='<div class="p-2 text-success fw-bold">Abriendo cámara...</div>';
+    if(location.protocol!=='https:' && !['localhost','127.0.0.1'].includes(location.hostname)){box.innerHTML='<div class="scan-bad">La cámara requiere HTTPS.</div>';return;}
+    try{
+      if(!window.Html5Qrcode){await new Promise((res,rej)=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+      if(window.__qr250){try{await window.__qr250.stop(); await window.__qr250.clear();}catch(e){}}
+      window.__qr250=new Html5Qrcode(readerId);
+      const cams=await Html5Qrcode.getCameras().catch(()=>[]);
+      const config={fps:12,qrbox:{width:240,height:160},formatsToSupport: undefined};
+      const camera=cams&&cams.length?{deviceId:{exact:cams[cams.length-1].id}}:{facingMode:{ideal:'environment'}};
+      await window.__qr250.start(camera,config,async decoded=>{
+        let val=String(decoded||'').trim(); if(inputId==='dniTrab'||inputId==='dniAvance') val=onlyDni(val);
+        input.value=val; input.dispatchEvent(new Event('input',{bubbles:true})); input.dispatchEvent(new Event('change',{bubbles:true}));
+        try{await window.__qr250.stop(); await window.__qr250.clear();}catch(e){} box.style.display='none';
+      },()=>{});
+    }catch(e){box.innerHTML='<div class="scan-bad">No se pudo activar cámara. Permite cámara en el candado del navegador o usa Chrome/Edge con HTTPS.</div>';}
+  };
+  // Pre-registro de avances: valida DNI registrado en Trabajadores y acumula hasta guardar.
+  let avances=new Map();
+  function renderAvances(){let q=$('avanceQueue'), h=$('avancesBatch'); if(!q||!h)return; let arr=[...avances.values()]; h.value=JSON.stringify(arr); if(!arr.length){q.innerHTML='<div class="text-muted small text-center">Lee/digita DNI y cantidad. Se acumula aquí hasta GUARDAR AVANCE.</div>';return;} q.innerHTML=arr.map(x=>'<div class="queue-item"><div><b>'+x.dni+'</b><br><span>'+x.trabajador+'</span></div><div><b>'+Number(x.cantidad||0).toFixed(2)+'</b></div><button type="button" class="btn btn-sm btn-outline-danger" data-del-avance="'+x.dni+'">×</button></div>').join(''); q.querySelectorAll('[data-del-avance]').forEach(b=>b.onclick=()=>{avances.delete(b.dataset.delAvance);renderAvances();});}
+  function setAvSt(ok,msg){let e=$('avanceTrabStatus'); if(!e)return; e.className=ok?'scan-ok mt-2':'scan-bad mt-2'; e.innerHTML=msg;}
+  function hojaFromForm(){let a=$('frmAvance')?.getAttribute('action')||''; let m=a.match(/\/hoja\/(\d+)\//); return m?m[1]:'';}
+  async function validarAgregarAvance(force=false){let inp=$('dniAvance'), lab=$('avanceLaborId'), cant=$('cantidadAvance'); if(!inp||!lab)return false; let dni=onlyDni(inp.value); if(dni.length<8){if(force)setAvSt(false,'Digite o escanee DNI de 8 dígitos.');return false;} inp.value=dni; let hoja=hojaFromForm(); if(!hoja||!lab.value){setAvSt(false,'Primero selecciona una labor.');return false;} let j={ok:false}; try{let r=await fetch('/api/trabajador-labor/'+hoja+'/'+lab.value+'/'+dni,{cache:'no-store',credentials:'same-origin'}); j=await r.json();}catch(e){} if(!j.ok){setAvSt(false,'✕ '+(j.msg||'El trabajador no está registrado en Trabajadores de esta labor.'));return false;} let cantidad=parseFloat(String(cant?.value||'1').replace(',','.')); if(!(cantidad>0)) cantidad=1; avances.set(dni,{dni,trabajador:j.trabajador.trabajador||'TRABAJADOR',cantidad}); renderAvances(); setAvSt(true,'✓ Agregado al pre-registro: <b>'+ (j.trabajador.trabajador||dni) +'</b> · Cantidad '+cantidad.toFixed(2)); setTimeout(()=>{inp.value=''; inp.focus();},120); return true;}
+  function detectarCantidadFinal(){let c=$('codigoAvance'), q=$('cantidadAvance'), box=$('cantidadDetectada'); if(!c||!q)return; let m=String(c.value||'').match(/(\d+(?:[\.,]\d+)?)(?!.*\d)/); if(m){q.value=Number(m[1].replace(',','.')).toFixed(2); if(box){box.style.display='block'; box.innerHTML='Cantidad detectada: <b>'+q.value+'</b>';}}}
+  window.abrirEditarAvance=function(id,cantidad){let f=$('frmEditAvance'); if(!f)return; f.action='/lectura/'+id+'/editar'; $('editCantAvance').value=Number(cantidad||0).toFixed(2); let n=$('editNoctAvance'); if(n)n.value='0.00'; new bootstrap.Modal($('modalEditAvance')).show();};
+  document.addEventListener('input',e=>{if(e.target&&e.target.id==='codigoAvance')detectarCantidadFinal(); if(e.target&&e.target.id==='dniAvance')validarAgregarAvance(false);},true);
+  document.addEventListener('keydown',e=>{if(e.target&&['dniAvance','cantidadAvance','codigoAvance'].includes(e.target.id)&&e.key==='Enter'){e.preventDefault();validarAgregarAvance(true);}},true);
+  document.addEventListener('submit',e=>{if(e.target&&e.target.id==='frmAvance'){renderAvances(); if(!avances.size){e.preventDefault(); validarAgregarAvance(true).then(ok=>{if(ok){renderAvances(); e.target.submit();}});}}},true);
+  document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalHora')setTimeout(installHorarioFinal,80); if(e.target&&e.target.id==='modalAvance'){avances=new Map(); renderAvances(); setTimeout(()=>$('dniAvance')?.focus(),80);}},true);
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(installHorarioFinal,200));
 })();
 </script>
+
 </body></html>
 """
 
@@ -837,7 +869,7 @@ def detalle_hoja(hoja_id):
         {% elif tab=='trabajadores' %}
           {% for r in tareos %}<div class="worker-card trabajador-card-ref {{'editable-tareo' if h.estado!='ENVIADA' else ''}}"><div class="worker-title"><div>TRABAJADOR<br><b>{{r.trabajador}}</b></div><div>NRO.DOCUMENTO<br><b>{{r.dni}}</b></div></div><div class="trabajador-grid-ref"><div><label>H.INICIO</label><div class="time-box">{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}</div></div><div><label>H.FIN</label><div class="time-box">{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}</div></div><div><label>H.NORMAL</label><div class="metric-box">{{'%.2f'|format((r.horas or 0) - (r.horas_nocturnas or 0))}}</div></div><div><label>REF.INI</label><div class="time-box">{{r.ref_inicio or '12:00'}}</div></div><div><label>REF.FIN</label><div class="time-box">{{r.ref_fin or '13:00'}}</div></div><div><label>H.NOCTURNO</label><div class="metric-box">{{'%.2f'|format(r.horas_nocturnas or 0)}}</div></div><div><label>ESTADO</label><div class="mini-badge bg-g">FIN TOTAL</div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><button type="button" onclick="abrirEditarTareo('{{r.id}}','{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}','{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}','{{r.ref_inicio or '12:00'}}','{{r.ref_fin or '13:00'}}')">Modificar</button><a class="danger" href="{{url_for('eliminar_tareo', tareo_id=r.id)}}" onclick="return confirm('¿Eliminar trabajador del tareo?')">Eliminar</a></div>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el <b>hombresito +</b> para registrar trabajador por QR/código/digitación.</div>{% endfor %}
         {% else %}
-          {% for l in lecturas %}<div class="worker-card avance-card-ref"><span class="person-dot"><i class="bi bi-person-circle"></i></span><div class="worker-title"><div>TRABAJADOR<br><b>{{l.trabajador}}</b></div><div>NRO.DOC.<br><b>{{l.dni}}</b></div></div><div class="small-label mt-1">HORA TOMA REGISTRO</div><div class="small-value">{{l.fecha_hora}} · {{l.metodo or 'DIGITACIÓN'}}</div><div class="worker-grid avance-grid"><div><label>CANTIDAD</label><div class="mini-badge bg-y">{{'%.2f'|format(l.a_diurno or 0)}}</div></div><div><label>UNIDAD</label><div class="mini-badge bg-g">BALDE</div></div><div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><button type="button" onclick="abrirEditarAvance('{{l.id}}','{{l.a_diurno or 0}}','0')">Modificar</button><a class="danger" href="{{url_for('eliminar_lectura', lectura_id=l.id)}}" onclick="return confirm('¿Eliminar avance?')">Eliminar</a></div>{% else %}<i class="bi bi-lock text-muted"></i>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el icono de escaneo para registrar avance por QR/código/digitación.</div>{% endfor %}
+          {% for l in lecturas %}<div class="worker-card avance-card-ref"><span class="person-dot"><i class="bi bi-person-circle"></i></span><div class="worker-title"><div>TRABAJADOR<br><b>{{l.trabajador}}</b></div><div>NRO.DOC.<br><b>{{l.dni}}</b></div></div><div class="small-label mt-1">HORA TOMA REGISTRO</div><div class="small-value">{{l.fecha_hora}} · {{l.metodo or 'DIGITACIÓN'}}</div><div class="worker-grid avance-grid"><div><label>CANTIDAD</label><div class="mini-badge bg-y">{{'%.2f'|format(l.a_diurno or 0)}}</div></div><div><label>UNIDAD</label><div class="mini-badge bg-g">BALDE</div></div><div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><button type="button" onclick="abrirEditarAvance('{{l.id}}','{{l.a_diurno or 0}}','{{l.a_noct or 0}}')">Modificar</button><a class="danger" href="{{url_for('eliminar_lectura', lectura_id=l.id)}}" onclick="return confirm('¿Eliminar avance?')">Eliminar</a></div>{% else %}<i class="bi bi-lock text-muted"></i>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el icono de escaneo para registrar avance por QR/código/digitación.</div>{% endfor %}
         {% endif %}<div class="leaf"></div>
       </div>
     </div>
@@ -849,8 +881,8 @@ def detalle_hoja(hoja_id):
     <div class="modal fade" id="modalEditTareo" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="frmEditTareo" method="post"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-pencil-square"></i> Editar horas del trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small">Solo se puede editar si la hoja aún no fue enviada.</div><div class="row g-2"><div class="col-6"><label class="form-label">Hora inicio</label><input id="editHi" name="hora_inicio" class="form-control" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div><div class="col-6"><label class="form-label">Hora fin</label><input id="editHf" name="hora_fin" class="form-control" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div><div class="col-6"><label class="form-label">Ref. ini</label><input id="editRi" name="ref_inicio" class="form-control" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div><div class="col-6"><label class="form-label">Ref. fin</label><input id="editRf" name="ref_fin" class="form-control" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div></div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR CAMBIOS</button></div></form></div></div></div>
 
     <div class="modal fade" id="modalRegistro" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='trabajadores')}}" id="frmTrab"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-person-plus"></i> Registrar trabajador</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="dni" id="dniTrab" class="form-control" placeholder="Escanee o digite DNI" autocomplete="off" inputmode="numeric" maxlength="30" oninput="autoDetectarDniInline(this)" onkeyup="autoDetectarDniInline(this)" onchange="autoDetectarDniInline(this)"><button type="button" class="btn btn-green" onclick="abrirScanner('readerTrab','dniTrab')"><i class="bi bi-upc-scan"></i></button></div><div id="readerTrab" style="display:none;margin-top:8px"></div><div id="dniStatus" class="mt-2 field-help">Escanee o digite DNI: al completar 8 dígitos se agregará al pre-registro con sonido.</div><input type="hidden" name="dnis_masivos" id="dnisMasivos"><div class="queue-title">PRE-REGISTRO DE TRABAJADORES</div><div id="workerQueue" class="worker-queue"><div class="text-muted small text-center">Aún no hay trabajadores detectados.</div></div></div><label class="form-label">LABOR SELECCIONADA</label><input type="hidden" name="labor_id" value="{{selected_labor_id}}"><div class="form-control mb-2" style="height:auto;min-height:37px;background:#f8fff9;color:#166534;font-weight:900">{% if selected_labor %}{{selected_labor.grupo}} / {{selected_labor.subgrupo}} / {{selected_labor.labor}} / {{selected_labor.turno}} / {{selected_labor.tipo_tareo}}{% else %}PRIMERO SELECCIONA UNA LABOR{% endif %}</div><input name="turno" id="turnoTrab" type="hidden" value="DIA"><input name="tipo_tareo" type="hidden" value="JORNAL"><input name="hora_inicio" id="horaInicioTrab" type="hidden" value="{{h.hora_inicio_default or '06:30'}}"><input name="hora_fin" id="horaFinTrab" type="hidden" value="{{h.hora_fin_default or '16:30'}}"><input name="ref_inicio" id="refInicioTrab" type="hidden" value="{{h.ref_inicio_default or '12:00'}}"><input name="ref_fin" id="refFinTrab" type="hidden" value="{{h.ref_fin_default or '13:00'}}"><input name="horas" id="horasTrab" type="hidden" value="0"><input name="cantidad" type="hidden" value="0.00"><div id="horarioActivoTxt" class="alert {{'alert-success' if h.horario_fijado else 'alert-warning'}} small mt-2 mb-0"><b>Horario activo:</b> {{h.hora_inicio_default or 'NO FIJADO'}} - {{h.hora_fin_default or 'NO FIJADO'}} / Refrigerio {{h.ref_inicio_default or '--:--'}} - {{h.ref_fin_default or '--:--'}}. {% if not h.horario_fijado %}<b>Primero fija el horario desde el icono de reloj.</b>{% endif %}</div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR TRABAJADORES</button></div></form></div></div></div>
-    <div class="modal fade" id="modalAvance" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='rendimiento')}}" id="frmAvance"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-upc-scan"></i> Registrar avance / lectura</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS DEL TRABAJADOR</label><div class="input-group"><input name="dni" id="dniAvance" class="form-control" placeholder="Escanee o digite DNI" required autocomplete="off" inputmode="numeric"><button type="button" class="btn btn-green" onclick="abrirScanner('readerAvance','dniAvance')"><i class="bi bi-upc-scan"></i></button></div><div id="avanceTrabStatus" class="field-help mt-2">Debe estar registrado en Trabajadores de esta labor.</div><div id="readerAvance" style="display:none;margin-top:8px"></div><label class="form-label mt-2">LECTOR AVANCE / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="codigo_avance" id="codigoAvance" class="form-control" placeholder="OPCIONAL: CÓDIGO DE AVANCE / BALDE / ETIQUETA"><button type="button" class="btn btn-green" onclick="abrirScanner('readerCodigoAvance','codigoAvance')"><i class="bi bi-upc-scan"></i></button></div><div id="readerCodigoAvance" style="display:none;margin-top:8px"></div><div id="cantidadDetectada" class="scan-ok mt-2" style="display:none">Cantidad detectada: <b>1.00</b></div></div><label class="form-label">LABOR SELECCIONADA</label><input type="hidden" name="labor_id" value="{{selected_labor_id}}" id="avanceLaborId"><div class="form-control mb-2" style="height:auto;min-height:37px;background:#f8fff9;color:#166534;font-weight:900">{% if selected_labor %}{{selected_labor.labor}} / {{selected_labor.turno}} / {{selected_labor.tipo_tareo}}{% else %}PRIMERO SELECCIONA UNA LABOR{% endif %}</div><input type="hidden" name="avance_items_json" id="avanceItemsJson"><div class="row g-2"><div class="col-6"><label class="form-label">CANTIDAD</label><input name="cantidad" id="cantidadAvance" type="number" step="0.01" min="0" class="form-control" value="1.00"></div><div class="col-6"><label class="form-label">UNIDAD</label><select name="unidad" class="form-select"><option>BALDE</option><option>KG</option><option>JABA</option><option>UNIDAD</option></select></div><div class="col-12"><div class="queue-title">PRE-REGISTRO DE AVANCES</div><div id="avanceQueue" class="worker-queue"><div class="text-muted small text-center">Lee/digita DNI y cantidad. Se acumula aquí hasta GUARDAR AVANCE.</div></div></div><div class="col-12"><label class="form-label">MÉTODO</label><select name="metodo" class="form-select"><option>QR/CÓDIGO</option><option>DIGITACIÓN</option><option>LECTOR USB</option></select></div></div></div><div class="modal-footer"><button class="btn btn-green w-100" id="btnGuardarAvance">GUARDAR AVANCE</button></div></form></div></div></div>
-    <div class="modal fade" id="modalEditAvance" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="frmEditAvance" method="post"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-pencil-square"></i> Editar avance</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small">Solo se puede editar si la hoja aún no fue enviada.</div><div class="row g-2"><div class="col-6"><label class="form-label">A. DIURNO</label><input id="editCantAvance" name="cantidad" type="number" step="0.01" class="form-control" required></div><div class="col-6"><label class="form-label">A. NOCT.</label><input id="editNoctAvance" name="a_noct" type="number" step="0.01" class="form-control" required></div></div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR CAMBIOS</button></div></form></div></div></div>
+    <div class="modal fade" id="modalAvance" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="post" action="{{url_for('guardar_registro_hoja', hoja_id=h.id, tab='rendimiento')}}" id="frmAvance"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-upc-scan"></i> Registrar avance / lectura</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="scan-box mb-2"><label class="form-label">DNI / QR / CÓDIGO BARRAS DEL TRABAJADOR</label><div class="input-group"><input name="dni" id="dniAvance" class="form-control" placeholder="Escanee o digite DNI" required autocomplete="off" inputmode="numeric"><button type="button" class="btn btn-green" onclick="abrirScanner('readerAvance','dniAvance')"><i class="bi bi-upc-scan"></i></button></div><div id="avanceTrabStatus" class="field-help mt-2">Debe estar registrado en Trabajadores de esta labor.</div><div id="readerAvance" style="display:none;margin-top:8px"></div><label class="form-label mt-2">LECTOR AVANCE / QR / CÓDIGO BARRAS</label><div class="input-group"><input name="codigo_avance" id="codigoAvance" class="form-control" placeholder="OPCIONAL: CÓDIGO DE AVANCE / BALDE / ETIQUETA"><button type="button" class="btn btn-green" onclick="abrirScanner('readerCodigoAvance','codigoAvance')"><i class="bi bi-upc-scan"></i></button></div><div id="readerCodigoAvance" style="display:none;margin-top:8px"></div><div id="cantidadDetectada" class="scan-ok mt-2" style="display:none">Cantidad detectada: <b>1.00</b></div></div><label class="form-label">LABOR SELECCIONADA</label><input type="hidden" name="labor_id" value="{{selected_labor_id}}" id="avanceLaborId"><div class="form-control mb-2" style="height:auto;min-height:37px;background:#f8fff9;color:#166534;font-weight:900">{% if selected_labor %}{{selected_labor.labor}} / {{selected_labor.turno}} / {{selected_labor.tipo_tareo}}{% else %}PRIMERO SELECCIONA UNA LABOR{% endif %}</div><div class="row g-2"><div class="col-6"><label class="form-label">CANTIDAD</label><input name="cantidad" id="cantidadAvance" type="number" step="0.01" class="form-control" value="1.00"></div><div class="col-6"><label class="form-label">UNIDAD</label><select name="unidad" class="form-select"><option>BALDE</option><option>KG</option><option>JABA</option><option>UNIDAD</option></select></div><input name="a_noct" id="aNoctAvance" type="hidden" value="0.00"><input name="avances_batch" id="avancesBatch" type="hidden"><div class="col-12"><div class="queue-title">PRE-REGISTRO DE AVANCES</div><div id="avanceQueue" class="worker-queue"><div class="text-muted small text-center">Lee/digita DNI y cantidad. Se acumula aquí hasta GUARDAR AVANCE.</div></div></div><div class="col-12"><label class="form-label">MÉTODO</label><select name="metodo" class="form-select"><option>QR/CÓDIGO</option><option>DIGITACIÓN</option><option>LECTOR USB</option></select></div></div></div><div class="modal-footer"><button class="btn btn-green w-100" id="btnGuardarAvance">GUARDAR AVANCE</button></div></form></div></div></div>
+    <div class="modal fade" id="modalEditAvance" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="frmEditAvance" method="post"><div class="modal-header"><h5 class="modal-title fw-bold text-success"><i class="bi bi-pencil-square"></i> Editar avance</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="alert alert-light border small">Solo se puede editar si la hoja aún no fue enviada.</div><div class="row g-2"><div class="col-12"><label class="form-label">CANTIDAD</label><input id="editCantAvance" name="cantidad" type="number" step="0.01" class="form-control" required></div><input id="editNoctAvance" name="a_noct" type="hidden" value="0.00"></div></div><div class="modal-footer"><button class="btn btn-green w-100">GUARDAR CAMBIOS</button></div></form></div></div></div>
 
     <script>
 (function(){
@@ -1205,9 +1237,6 @@ def copiar_labor_hoja(hoja_id, tab):
 def guardar_labor_hoja(hoja_id, tab):
     h = row_to_dict(execute('SELECT * FROM hojas_tareo WHERE id=?', (hoja_id,), fetchone=True))
     if not h: flash('Hoja no encontrada.', 'danger'); return redirect(url_for('hojas_tareo'))
-    if str(h.get('estado') or '').upper() == 'ENVIADA':
-        flash('No se puede crear/modificar labores: la hoja ya fue enviada.', 'danger')
-        return redirect(url_for('detalle_hoja', hoja_id=hoja_id, tab='labores'))
     grupo = limpiar_texto(request.form.get('grupo') or h.get('grupo'))
     subgrupo = limpiar_texto(request.form.get('subgrupo') or h.get('subgrupo'))
     labor = limpiar_texto(request.form.get('labor') or h.get('labor'))
@@ -1276,37 +1305,6 @@ def guardar_registro_hoja(hoja_id, tab):
         return redirect(url_for('detalle_hoja', hoja_id=hoja_id, tab='labores'))
     labor = (lab or h).get('labor')
     grupo = (lab or h).get('grupo')
-
-    if tab == 'rendimiento' and request.form.get('avance_items_json'):
-        import json
-        try:
-            items = json.loads(request.form.get('avance_items_json') or '[]')
-        except Exception:
-            items = []
-        metodo = limpiar_texto(request.form.get('metodo') or 'QR/CÓDIGO')
-        ok = 0; errores = []
-        for it in items:
-            dni = limpiar_dni((it or {}).get('dni'))
-            try:
-                cantidad_item = float((it or {}).get('cantidad') or 0)
-            except Exception:
-                cantidad_item = 0
-            if len(dni) != 8 or cantidad_item <= 0:
-                errores.append((dni or 'SIN DNI') + ' inválido')
-                continue
-            tr = row_to_dict(execute('SELECT dni, trabajador FROM tareos WHERE hoja_id=? AND labor_id=? AND dni=? ORDER BY id DESC LIMIT 1', (hoja_id, labor_id, dni), fetchone=True))
-            if not tr:
-                errores.append(dni + ' no registrado en Trabajadores de esta labor')
-                continue
-            execute('INSERT INTO lecturas_balde(hoja_id,labor_id,dni,trabajador,fecha_hora,a_diurno,a_noct,metodo,registrado_por) VALUES(?,?,?,?,?,?,?,?,?)',
-                    (hoja_id,labor_id,dni,tr.get('trabajador',''),now_str(),cantidad_item,0,metodo,session.get('usuario')), commit=True)
-            ok += 1
-        msg = f'Avances guardados correctamente: {ok}.'
-        if errores:
-            msg += ' Observados: ' + ', '.join(errores)
-        flash(msg, 'success' if ok else 'danger')
-        return redirect(url_for('detalle_hoja', hoja_id=hoja_id, tab=tab, labor_id=labor_id or ''))
-
     turno = limpiar_texto(request.form.get('turno') or (lab or h).get('turno') or 'DIA')
     tipo_tareo = limpiar_texto(request.form.get('tipo_tareo') or (lab or h).get('tipo_tareo') or 'JORNAL')
     try:
@@ -1321,6 +1319,8 @@ def guardar_registro_hoja(hoja_id, tab):
     ref_inicio = request.form.get('ref_inicio') or h.get('ref_inicio_default') or '12:00'
     ref_fin = request.form.get('ref_fin') or h.get('ref_fin_default') or '13:00'
     horas_noct = 0
+    if tab == 'rendimiento':
+        a_noct = 0
     if tab == 'trabajadores':
         coherente, msg_coh = horario_coherente(hora_inicio, hora_fin, ref_inicio, ref_fin)
         if not coherente:
@@ -1330,6 +1330,45 @@ def guardar_registro_hoja(hoja_id, tab):
         horas_noct = calcular_horas_nocturnas(hora_inicio, hora_fin, ref_inicio, ref_fin)
     unidad = limpiar_texto(request.form.get('unidad') or ('BALDE' if tab == 'rendimiento' else tipo_tareo))
     metodo = limpiar_texto(request.form.get('metodo') or 'DIGITACIÓN')
+
+    # Registro de avances por pre-registro: acumula DNI + cantidad y recién guarda al presionar GUARDAR AVANCE.
+    if tab == 'rendimiento':
+        import json
+        batch_raw = request.form.get('avances_batch') or ''
+        batch = []
+        if batch_raw.strip():
+            try:
+                tmp = json.loads(batch_raw)
+                if isinstance(tmp, list):
+                    batch = tmp
+            except Exception:
+                batch = []
+        if batch:
+            ok = 0; no_encontrados = []
+            for item in batch:
+                dni = limpiar_dni(item.get('dni') if isinstance(item, dict) else '')
+                try:
+                    cant = float(str(item.get('cantidad', cantidad)).replace(',', '.')) if isinstance(item, dict) else cantidad
+                except Exception:
+                    cant = cantidad
+                if len(dni) != 8:
+                    no_encontrados.append(str(dni) + ' inválido')
+                    continue
+                t = row_to_dict(execute('SELECT * FROM trabajadores WHERE dni=?', (dni,), fetchone=True))
+                if not t:
+                    no_encontrados.append(dni + ' no existe en base trabajadores')
+                    continue
+                if not scalar('SELECT COUNT(*) AS c FROM tareos WHERE hoja_id=? AND labor_id=? AND dni=?', (hoja_id, labor_id, dni)):
+                    no_encontrados.append(dni + ' no registrado en Trabajadores de esta labor')
+                    continue
+                execute('INSERT INTO lecturas_balde(hoja_id,labor_id,dni,trabajador,fecha_hora,a_diurno,a_noct,metodo,registrado_por) VALUES(?,?,?,?,?,?,?,?,?)',
+                        (hoja_id,labor_id,dni,t.get('trabajador',''),now_str(),cant,0,metodo,session.get('usuario')), commit=True)
+                ok += 1
+            msg = f'Avances guardados correctamente: {ok}.'
+            if no_encontrados:
+                msg += ' Observados: ' + ', '.join(no_encontrados)
+            flash(msg, 'success' if ok else 'danger')
+            return redirect(url_for('detalle_hoja', hoja_id=hoja_id, tab=tab, labor_id=labor_id or ''))
 
     ok = 0; no_encontrados = []
     for dni in dnis:
@@ -1435,7 +1474,7 @@ def editar_lectura(lectura_id):
         return redirect(url_for('detalle_hoja', hoja_id=l.get('hoja_id'), tab='rendimiento', labor_id=l.get('labor_id') or ''))
     try:
         cant = float(request.form.get('cantidad') or 0)
-        noct = float(request.form.get('a_noct') or 0)
+        noct = 0.0
     except Exception:
         flash('Cantidad inválida.', 'danger')
         return redirect(url_for('detalle_hoja', hoja_id=l.get('hoja_id'), tab='rendimiento', labor_id=l.get('labor_id') or ''))
