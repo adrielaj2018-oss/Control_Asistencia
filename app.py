@@ -447,6 +447,35 @@ input[type="text"], input:not([type]), textarea { text-transform:uppercase; }
 })();
 </script>
 
+<script>
+/* PATCH URGENTE: validación avance solo donde existe modalAvance, sin usar variables Jinja fuera de contexto */
+(function(){
+  const $=id=>document.getElementById(id);
+  function onlyDni(v){const d=String(v||'').replace(/\D/g,'');return d.length>=8?d.slice(-8):d;}
+  function setSt(ok,msg){const e=$('avanceTrabStatus'); if(!e)return; e.className=ok?'scan-ok mt-2':'scan-bad mt-2'; e.innerHTML=msg;}
+  function hojaIdFromForm(){const f=$('frmAvance'); const m=f && String(f.getAttribute('action')||'').match(/\/hoja\/(\d+)\//); return m?m[1]:'';}
+  async function validarTrabAvance(){
+    const inp=$('dniAvance'), labor=$('avanceLaborId'); if(!inp||!labor)return;
+    const dni=onlyDni(inp.value); if(dni.length<8){setSt(false,'Digite o escanee DNI de 8 dígitos.'); return;}
+    inp.value=dni; const hoja=hojaIdFromForm();
+    if(!hoja || !labor.value){setSt(false,'Primero seleccione una labor.'); return;}
+    try{
+      const r=await fetch('/api/trabajador-labor/'+encodeURIComponent(hoja)+'/'+encodeURIComponent(labor.value)+'/'+encodeURIComponent(dni),{cache:'no-store',credentials:'same-origin'});
+      const j=await r.json();
+      if(j.ok){setSt(true,'✓ Trabajador registrado en esta labor: <b>'+j.trabajador.trabajador+'</b>');}
+      else{setSt(false,'✕ '+(j.msg||'El trabajador no está registrado en Trabajadores de esta labor.'));}
+    }catch(e){setSt(false,'No se pudo validar trabajador.');}
+  }
+  function detectarCantidad(){
+    const c=$('codigoAvance'), q=$('cantidadAvance'), box=$('cantidadDetectada'); if(!c||!q)return;
+    const txt=String(c.value||''); const m=txt.match(/(\d+(?:[\.,]\d+)?)(?!.*\d)/);
+    if(m){const val=m[1].replace(',','.'); q.value=Number(val).toFixed(2); if(box){box.style.display='block'; box.innerHTML='Cantidad detectada: <b>'+q.value+'</b>';}}
+  }
+  document.addEventListener('input',e=>{if(e.target&&e.target.id==='dniAvance')validarTrabAvance(); if(e.target&&e.target.id==='codigoAvance')detectarCantidad();},true);
+  document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalAvance')setTimeout(validarTrabAvance,80);},true);
+})();
+</script>
+
 </body></html>
 """
 
@@ -641,26 +670,6 @@ def crear_hoja():
         function refreshConsumidor(){const a=(actividadInput.value||'').toUpperCase(), l=(laborInput.value||'').toUpperCase(); const rows=MAESTROS.filter(x=>(!a || String(x.desc_actividad||'').toUpperCase().includes(a)||String(x.cod_actividad||'').toUpperCase().includes(a)) && (!l || String(x.desc_labor||'').toUpperCase().includes(l)||String(x.cod_labor||'').toUpperCase().includes(l))); fillList('consumidor_list', uniq(rows.map(x=>x.desc_consumidor || x.cod_consumidor)));}
         actividadInput.addEventListener('input', refreshLabor); laborInput.addEventListener('input', refreshConsumidor); document.addEventListener('DOMContentLoaded',()=>{refreshActividad();refreshLabor();});
       </script>
-<script>
-(function(){
-  const $=id=>document.getElementById(id);
-  function onlyDni(v){const d=String(v||'').replace(/\D/g,'');return d.length>=8?d.slice(-8):d;}
-  function setSt(ok,msg){const e=$('avanceTrabStatus'); if(!e)return; e.className=ok?'scan-ok mt-2':'scan-bad mt-2'; e.innerHTML=msg;}
-  async function validarTrabAvance(){
-    const inp=$('dniAvance'), labor=$('avanceLaborId'); if(!inp||!labor)return;
-    const dni=onlyDni(inp.value); if(dni.length<8){setSt(false,'Digite o escanee DNI de 8 dígitos.'); return;}
-    inp.value=dni;
-    try{const r=await fetch('/api/trabajador-labor/{{h.id}}/'+encodeURIComponent(labor.value||'0')+'/'+encodeURIComponent(dni),{cache:'no-store',credentials:'same-origin'}); const j=await r.json();
-      if(j.ok){setSt(true,'✓ Trabajador registrado en esta labor: <b>'+j.trabajador.trabajador+'</b>');}
-      else{setSt(false,'✕ '+(j.msg||'El trabajador no está registrado en Trabajadores de esta labor.'));}
-    }catch(e){setSt(false,'No se pudo validar trabajador.');}
-  }
-  function detectarCantidad(){const c=$('codigoAvance'), q=$('cantidadAvance'), box=$('cantidadDetectada'); if(!c||!q)return; const txt=String(c.value||''); const m=txt.match(/(\d+(?:[.,]\d+)?)(?!.*\d)/); if(m){const val=m[1].replace(',','.'); q.value=Number(val).toFixed(2); if(box){box.style.display='block'; box.innerHTML='Cantidad detectada: <b>'+q.value+'</b>';}}}
-  document.addEventListener('input',e=>{if(e.target&&e.target.id==='dniAvance')validarTrabAvance(); if(e.target&&e.target.id==='codigoAvance')detectarCantidad(); if(e.target&&['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'].includes(e.target.id)){if(window.setCampoHorario)window.setCampoHorario(e.target.id);}});
-  document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalAvance')setTimeout(validarTrabAvance,80); if(e.target&&e.target.id==='modalHora'){setTimeout(()=>{['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'].forEach(id=>{let x=$(id); if(x){x.readOnly=false; x.removeAttribute('readonly'); x.placeholder='HH:MM';}});},100);}});
-  window.abrirEditarAvance=function(id,cant,noct){const f=$('frmEditAvance'); if(!f)return; f.action='/lectura/'+id+'/editar'; $('editCantAvance').value=Number(cant||0).toFixed(2); $('editNoctAvance').value=Number(noct||0).toFixed(2); new bootstrap.Modal($('modalEditAvance')).show();};
-})();
-</script>
 
     """
     return render_page(body, today=today_str(), maestros_json=js_master_options(maestros))
