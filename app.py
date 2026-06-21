@@ -148,12 +148,9 @@ def horario_coherente(hora_inicio, hora_fin, ref_inicio, ref_fin):
         return False, 'El refrigerio debe estar dentro de la jornada de inicio y fin.'
     if (rf - ri) > (hf - hi):
         return False, 'El refrigerio no puede ser mayor que la jornada.'
-    dur_jornada = hf - hi
-    dur_neta = dur_jornada - (rf - ri)
-    # Bloquea horarios sin coherencia operativa: ej. 19:40 a 16:30 equivale a casi 21 horas.
-    # Se mantiene permitido el turno noche normal, por ejemplo 22:00 a 06:00.
-    if dur_jornada > 16 * 60 or dur_neta > 15 * 60:
-        return False, 'Horario incoherente: la jornada supera el máximo permitido. Revise inicio, fin y refrigerio.'
+    # No se bloquea por duración total de jornada.
+    # La validación solicitada es únicamente que el refrigerio quede dentro
+    # del rango de inicio y fin de trabajo, incluso si cruza medianoche.
     return True, ''
 
 def hoja_enviada(hoja_id):
