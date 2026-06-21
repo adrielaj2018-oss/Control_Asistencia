@@ -379,23 +379,6 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
 .scanner-close-x{position:absolute!important;right:8px!important;top:8px!important;z-index:99999!important;width:36px!important;height:36px!important;border:0!important;border-radius:999px!important;background:#dc2626!important;color:#fff!important;font-size:24px!important;font-weight:900!important;line-height:34px!important;text-align:center!important;box-shadow:0 3px 10px rgba(0,0,0,.28)!important;}
 .scanner-close-x:hover{background:#b91c1c!important;}
 [id^="reader"]{position:relative!important;min-height:0;}
-
-
-/* === PATCH 254: selector horario tipo rueda táctil/cursor === */
-.time-wheel-pop{position:fixed;z-index:200000;background:#fff;border-radius:13px;box-shadow:0 12px 32px rgba(0,0,0,.28);border:1px solid #e5e7eb;width:184px;height:154px;padding:7px 8px;display:none;overflow:hidden;user-select:none}
-.time-wheel-pop.show{display:block}
-.time-wheel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;height:116px;position:relative}
-.time-wheel-grid:before{content:'';position:absolute;left:0;right:0;top:44px;height:30px;background:#f1f1f1;border-radius:7px;z-index:0}
-.time-wheel-col{position:relative;z-index:2;overflow-y:auto;height:116px;scroll-snap-type:y mandatory;overscroll-behavior:contain;padding:43px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.time-wheel-col::-webkit-scrollbar{display:none}
-.time-wheel-item{height:30px;line-height:30px;text-align:center;font-size:17px;color:#a1a1aa;font-weight:700;scroll-snap-align:center;cursor:pointer}
-.time-wheel-item.active{color:#111827;font-size:18px;font-weight:900}
-.time-wheel-sep{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#f3f4f6;z-index:1}
-.time-wheel-mini{display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:5px;font-size:10px;font-weight:900;color:#166534}
-.time-wheel-mini button{border:0;background:#2f773b;color:#fff;border-radius:7px;padding:4px 8px;font-size:10px;font-weight:900}
-.time-wheel-active{box-shadow:0 0 0 3px rgba(59,130,246,.25)!important;border-color:#2f773b!important}
-@media(max-width:520px){.time-wheel-pop{width:182px;height:152px}.time-wheel-item{font-size:16px}}
-
 </style></head><body class="{{ 'login-page' if not session.get('usuario') else '' }}"><div class="app-bg"><main class="shell">
 {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="phone-wrap mt-2">{% for cat,msg in messages %}<div class="alert alert-{{cat}} shadow-sm">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
 {{ body|safe }}</main></div>
@@ -707,82 +690,99 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
 </script>
 
 
+<!-- PATCH FINAL OMAR: Wheel Time Picker táctil estilo iPhone -->
+<style>
+/* Picker rueda estilo iPhone para campos HH:MM */
+.ios-time-wheel-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.30);z-index:200000;display:none;align-items:center;justify-content:center;padding:14px;}
+.ios-time-wheel{width:min(330px,92vw);background:rgba(255,255,255,.96);border-radius:18px;box-shadow:0 18px 45px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(0,0,0,.08);font-family:Inter,Segoe UI,Arial,sans-serif;}
+.ios-wheel-head{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid #e5e7eb;font-weight:900;color:#166534;font-size:14px;}
+.ios-wheel-btn{border:0;background:transparent;font-weight:900;color:#2f773b;font-size:14px;padding:9px 8px;}
+.ios-wheel-cancel{color:#6b7280;}
+.ios-wheel-body{position:relative;height:190px;display:grid;grid-template-columns:1fr 1fr;gap:0;background:linear-gradient(#fbfbfb,#fff,#fbfbfb);overflow:hidden;}
+.ios-wheel-col{height:190px;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;text-align:center;overscroll-behavior:contain;padding:76px 0;scrollbar-width:none;touch-action:pan-y;}
+.ios-wheel-col::-webkit-scrollbar{display:none;}
+.ios-wheel-item{height:38px;line-height:38px;font-size:22px;font-weight:800;color:#b9b9b9;scroll-snap-align:center;user-select:none;cursor:pointer;transition:color .12s, font-size .12s, opacity .12s;}
+.ios-wheel-item.active{color:#111827;font-size:24px;opacity:1;}
+.ios-wheel-center{pointer-events:none;position:absolute;left:14px;right:14px;top:76px;height:38px;border-radius:7px;background:rgba(229,231,235,.82);box-shadow:inset 0 0 0 1px rgba(209,213,219,.55);}
+.ios-wheel-fade-top,.ios-wheel-fade-bottom{pointer-events:none;position:absolute;left:0;right:0;height:70px;z-index:2;}
+.ios-wheel-fade-top{top:0;background:linear-gradient(to bottom,rgba(255,255,255,.96),rgba(255,255,255,.40),rgba(255,255,255,0));}
+.ios-wheel-fade-bottom{bottom:0;background:linear-gradient(to top,rgba(255,255,255,.96),rgba(255,255,255,.40),rgba(255,255,255,0));}
+.ios-wheel-sep{pointer-events:none;position:absolute;top:79px;bottom:79px;left:50%;width:1px;background:#e5e7eb;z-index:3;}
+input.ios-time-input{cursor:pointer!important;background:#fff!important;caret-color:transparent!important;}
+input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;box-shadow:0 0 0 .25rem rgba(47,119,59,.18)!important;}
+</style>
+
 <script>
-/* PATCH 254: Rueda táctil/cursor para elegir HH:MM en campos de horario */
 (function(){
   'use strict';
-  const ids = new Set(['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault','horaInicioTrab','horaFinTrab','refInicioTrab','refFinTrab']);
-  const nameRe = /(hora_inicio|hora_fin|ref_inicio|ref_fin|inicio|fin).*?(default|trab|hora)?/i;
-  let pop=null, hourCol=null, minCol=null, activeInput=null, scrollTimer=null;
-  const pad=n=>String(n).padStart(2,'0');
-  function isTimeInput(el){
-    if(!el || el.tagName!=='INPUT') return false;
-    if(ids.has(el.id)) return true;
-    const nm=(el.name||'')+' '+(el.id||'');
-    return /hora|ref_|inicio|fin/i.test(nm) && /^\d{2}:\d{2}$/.test((el.value||'').trim());
+  const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault','horaInicioTrab','horaFinTrab','refInicioTrab','refFinTrab'];
+  const $=id=>document.getElementById(id);
+  const pad=n=>String(Number(n)||0).padStart(2,'0');
+  function parseTime(v){let m=String(v||'00:00').match(/^(\d{1,2}):(\d{1,2})$/);let h=m?parseInt(m[1],10):0, mi=m?parseInt(m[2],10):0;h=Math.max(0,Math.min(23,isNaN(h)?0:h));mi=Math.max(0,Math.min(59,isNaN(mi)?0:mi));return [h, Math.round(mi/5)*5>55?55:Math.round(mi/5)*5];}
+  function build(){
+    if($('iosTimeWheelBackdrop'))return;
+    const html=`<div id="iosTimeWheelBackdrop" class="ios-time-wheel-backdrop">
+      <div class="ios-time-wheel" role="dialog" aria-modal="true">
+        <div class="ios-wheel-head"><button type="button" id="iosWheelCancel" class="ios-wheel-btn ios-wheel-cancel">Cancelar</button><span>Elegir hora</span><button type="button" id="iosWheelOk" class="ios-wheel-btn">Listo</button></div>
+        <div class="ios-wheel-body">
+          <div class="ios-wheel-center"></div><div class="ios-wheel-fade-top"></div><div class="ios-wheel-fade-bottom"></div><div class="ios-wheel-sep"></div>
+          <div id="iosWheelHours" class="ios-wheel-col" aria-label="Horas"></div>
+          <div id="iosWheelMinutes" class="ios-wheel-col" aria-label="Minutos"></div>
+        </div>
+      </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend',html);
+    const h=$('iosWheelHours'), m=$('iosWheelMinutes');
+    h.innerHTML=Array.from({length:24},(_,i)=>`<div class="ios-wheel-item" data-v="${i}">${pad(i)}</div>`).join('');
+    m.innerHTML=Array.from({length:12},(_,i)=>`<div class="ios-wheel-item" data-v="${i*5}">${pad(i*5)}</div>`).join('');
+    h.addEventListener('scroll',()=>requestAnimationFrame(updateActive));
+    m.addEventListener('scroll',()=>requestAnimationFrame(updateActive));
+    h.addEventListener('click',ev=>{const it=ev.target.closest('.ios-wheel-item'); if(it)scrollToVal(h,Number(it.dataset.v));});
+    m.addEventListener('click',ev=>{const it=ev.target.closest('.ios-wheel-item'); if(it)scrollToVal(m,Number(it.dataset.v));});
+    $('iosWheelCancel').onclick=close;
+    $('iosWheelOk').onclick=apply;
+    $('iosTimeWheelBackdrop').addEventListener('click',ev=>{if(ev.target.id==='iosTimeWheelBackdrop')close();});
   }
-  function parseTime(v){
-    const m=String(v||'06:30').match(/(\d{1,2})\D?(\d{2})?/);
-    let h=m?parseInt(m[1]||'0',10):6; let mi=m?parseInt(m[2]||'0',10):30;
-    if(isNaN(h))h=0; if(isNaN(mi))mi=0; h=Math.max(0,Math.min(23,h)); mi=Math.round(Math.max(0,Math.min(59,mi))/5)*5; if(mi>=60){mi=55;}
-    return [h,mi];
+  let current=null;
+  function itemHeight(){return 38;}
+  function scrollToVal(col,val){col.scrollTo({top:val/Number(col.id==='iosWheelMinutes'?5:1)*itemHeight(),behavior:'smooth'});setTimeout(updateActive,140);}
+  function selected(col){const div=Math.round(col.scrollTop/itemHeight());return col.id==='iosWheelMinutes'?Math.max(0,Math.min(55,div*5)):Math.max(0,Math.min(23,div));}
+  function updateActive(){
+    const h=$('iosWheelHours'), m=$('iosWheelMinutes'); if(!h||!m)return;
+    const hv=selected(h), mv=selected(m);
+    h.querySelectorAll('.ios-wheel-item').forEach((it,i)=>it.classList.toggle('active',i===hv));
+    m.querySelectorAll('.ios-wheel-item').forEach((it,i)=>it.classList.toggle('active',i*5===mv));
+    if(current){current.value=pad(hv)+':'+pad(mv); current.dispatchEvent(new Event('input',{bubbles:true})); current.dispatchEvent(new Event('change',{bubbles:true})); syncDisplay();}
   }
-  function make(){
-    if(pop) return;
-    pop=document.createElement('div'); pop.id='timeWheelPicker'; pop.className='time-wheel-pop';
-    pop.innerHTML='<div class="time-wheel-grid"><div class="time-wheel-sep"></div><div class="time-wheel-col" id="timeWheelHours"></div><div class="time-wheel-col" id="timeWheelMinutes"></div></div><div class="time-wheel-mini"><span>Hora</span><button type="button" id="timeWheelOk">OK</button></div>';
-    document.body.appendChild(pop); hourCol=pop.querySelector('#timeWheelHours'); minCol=pop.querySelector('#timeWheelMinutes');
-    for(let h=0;h<24;h++){let d=document.createElement('div');d.className='time-wheel-item';d.textContent=pad(h);d.dataset.val=h;hourCol.appendChild(d);}
-    for(let m=0;m<60;m+=5){let d=document.createElement('div');d.className='time-wheel-item';d.textContent=pad(m);d.dataset.val=m;minCol.appendChild(d);}
-    pop.querySelector('#timeWheelOk').onclick=hide;
-    [hourCol,minCol].forEach(col=>{
-      col.addEventListener('scroll',()=>{clearTimeout(scrollTimer); scrollTimer=setTimeout(()=>applyFromScroll(),45);},{passive:true});
-      col.addEventListener('click',e=>{const it=e.target.closest('.time-wheel-item'); if(!it)return; it.scrollIntoView({block:'center',behavior:'smooth'}); setTimeout(applyFromScroll,120);});
-      col.addEventListener('wheel',()=>{clearTimeout(scrollTimer); scrollTimer=setTimeout(()=>applyFromScroll(),80);},{passive:true});
-      col.addEventListener('touchend',()=>{setTimeout(applyFromScroll,90);},{passive:true});
-    });
-    document.addEventListener('pointerdown',e=>{ if(!pop.classList.contains('show'))return; if(pop.contains(e.target) || e.target===activeInput)return; hide(); },true);
-    window.addEventListener('resize',()=>{if(activeInput)position(activeInput);});
-    window.addEventListener('scroll',()=>{if(activeInput)position(activeInput);},true);
+  function syncDisplay(){
+    try{ if(window.aplicarHorarioRegistro) window.aplicarHorarioRegistro(); }catch(e){}
+    try{ if(window.setCampoHorario && current) window.setCampoHorario(current.id); }catch(e){}
+    const tv=$('touchClockValue'); if(tv&&current)tv.textContent=current.value;
+    const sl=$('timeSlider24'); if(sl&&current){const [h,m]=parseTime(current.value); sl.value=h*60+m;}
   }
-  function nearest(col){
-    const center=col.scrollTop + col.clientHeight/2; let best=null,bd=1e9;
-    col.querySelectorAll('.time-wheel-item').forEach(it=>{const c=it.offsetTop+it.offsetHeight/2; const d=Math.abs(c-center); if(d<bd){bd=d;best=it;}});
-    return best;
+  function openFor(input){
+    build(); current=input; input.classList.add('ios-time-input');
+    try{input.blur();}catch(e){}
+    const [h,m]=parseTime(input.value);
+    const back=$('iosTimeWheelBackdrop'), hc=$('iosWheelHours'), mc=$('iosWheelMinutes');
+    back.style.display='flex';
+    hc.scrollTop=h*itemHeight(); mc.scrollTop=(m/5)*itemHeight();
+    setTimeout(()=>{updateActive();},30);
   }
-  function mark(col,item){col.querySelectorAll('.time-wheel-item.active').forEach(x=>x.classList.remove('active')); if(item)item.classList.add('active');}
-  function applyFromScroll(){
-    if(!activeInput) return;
-    const h=nearest(hourCol), m=nearest(minCol); mark(hourCol,h); mark(minCol,m);
-    if(h&&m){ activeInput.value=pad(h.dataset.val)+':'+pad(m.dataset.val); activeInput.dispatchEvent(new Event('input',{bubbles:true})); activeInput.dispatchEvent(new Event('change',{bubbles:true})); }
-  }
-  function scrollTo(col,val){
-    const item=[...col.querySelectorAll('.time-wheel-item')].find(x=>parseInt(x.dataset.val,10)===parseInt(val,10));
-    if(item){ col.scrollTop = item.offsetTop - (col.clientHeight/2) + (item.offsetHeight/2); mark(col,item); }
-  }
-  function position(input){
-    if(!pop) return;
-    const r=input.getBoundingClientRect(); const pw=pop.offsetWidth||184, ph=pop.offsetHeight||154;
-    let left=r.left + (r.width/2) - (pw/2); left=Math.max(8,Math.min(left,window.innerWidth-pw-8));
-    let top=r.bottom + 6; if(top+ph>window.innerHeight-8) top=r.top-ph-6; if(top<8) top=8;
-    pop.style.left=left+'px'; pop.style.top=top+'px';
-  }
-  function show(input){
-    make(); if(activeInput&&activeInput!==input)activeInput.classList.remove('time-wheel-active'); activeInput=input; input.classList.add('time-wheel-active');
-    pop.classList.add('show'); position(input); const [h,m]=parseTime(input.value); setTimeout(()=>{scrollTo(hourCol,h); scrollTo(minCol,m); applyFromScroll();},20);
-  }
-  function hide(){ if(activeInput)activeInput.classList.remove('time-wheel-active'); activeInput=null; if(pop)pop.classList.remove('show'); }
-  function bind(){
-    document.querySelectorAll('input').forEach(el=>{
-      if(!isTimeInput(el) || el.dataset.wheel254==='1') return; el.dataset.wheel254='1'; el.setAttribute('autocomplete','off'); el.setAttribute('inputmode','numeric');
-      el.addEventListener('focus',()=>show(el)); el.addEventListener('click',()=>show(el)); el.addEventListener('pointerdown',()=>setTimeout(()=>show(el),0));
+  function close(){const b=$('iosTimeWheelBackdrop'); if(b)b.style.display='none'; current=null;}
+  function apply(){updateActive(); close();}
+  function wire(root=document){
+    IDS.forEach(id=>{
+      const el=$(id); if(!el||el.dataset.iosWheel==='1')return;
+      el.dataset.iosWheel='1'; el.classList.add('ios-time-input'); el.setAttribute('autocomplete','off'); el.setAttribute('inputmode','none'); el.readOnly=true;
+      ['pointerdown','mousedown','touchstart','focus','click'].forEach(ev=>el.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();openFor(el);},{capture:true,passive:false}));
     });
   }
-  document.addEventListener('DOMContentLoaded',()=>{make(); bind(); setInterval(bind,700);});
-  document.addEventListener('shown.bs.modal',()=>setTimeout(bind,80));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(wire,100));
+  document.addEventListener('shown.bs.modal',()=>setTimeout(wire,120),true);
+  document.addEventListener('click',e=>{const el=e.target&&e.target.closest&&e.target.closest('input'); if(el&&IDS.includes(el.id)){e.preventDefault();e.stopPropagation();openFor(el);}},true);
 })();
 </script>
-
 </body></html>
 """
 
