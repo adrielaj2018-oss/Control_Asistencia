@@ -148,6 +148,12 @@ def horario_coherente(hora_inicio, hora_fin, ref_inicio, ref_fin):
         return False, 'El refrigerio debe estar dentro de la jornada de inicio y fin.'
     if (rf - ri) > (hf - hi):
         return False, 'El refrigerio no puede ser mayor que la jornada.'
+    dur_jornada = hf - hi
+    dur_neta = dur_jornada - (rf - ri)
+    # Bloquea horarios sin coherencia operativa: ej. 19:40 a 16:30 equivale a casi 21 horas.
+    # Se mantiene permitido el turno noche normal, por ejemplo 22:00 a 06:00.
+    if dur_jornada > 16 * 60 or dur_neta > 15 * 60:
+        return False, 'Horario incoherente: la jornada supera el máximo permitido. Revise inicio, fin y refrigerio.'
     return True, ''
 
 def hoja_enviada(hoja_id):
@@ -636,6 +642,52 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
 <style>
 .avance-grid.cantidad-only{grid-template-columns:1fr 1fr 32px!important}.avance-grid.cantidad-only label{font-size:8px!important;font-weight:900;color:#55745a}.avance-grid.cantidad-only .mini-badge{height:26px!important}.card-menu button{cursor:pointer}.card-menu button:hover{background:#eef8ef!important}.modal-title:has(+ .btn-close){}
 </style>
+
+<script>
+/* PATCH 253: botón visible para apagar cámara + scanner robusto */
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  function closeBtn(){return '<button type="button" class="scanner-close-x" aria-label="Apagar cámara" title="Apagar cámara">×</button>';}
+  function ponerX(box){
+    if(!box) return;
+    box.style.position='relative';
+    if(!box.querySelector('.scanner-close-x')) box.insertAdjacentHTML('afterbegin', closeBtn());
+    const b=box.querySelector('.scanner-close-x');
+    if(b){ b.onclick=function(ev){ev.preventDefault();ev.stopPropagation(); window.cerrarScannerActivo&&window.cerrarScannerActivo();}; }
+  }
+  async function detener(obj){try{if(obj){await obj.stop?.().catch(()=>{}); await obj.clear?.().catch(()=>{});}}catch(e){}}
+  window.cerrarScannerActivo=async function(){
+    await detener(window.__scannerActivo253); window.__scannerActivo253=null;
+    await detener(window.__qr250); window.__qr250=null;
+    document.querySelectorAll('[id^="reader"]').forEach(el=>{el.style.display='none'; el.innerHTML='';});
+    try{document.querySelectorAll('video').forEach(v=>{const st=v.srcObject; if(st&&st.getTracks)st.getTracks().forEach(t=>t.stop());});}catch(e){}
+  };
+  function loadQr(){return new Promise(res=>{if(window.Html5Qrcode)return res(true); const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js'; s.onload=()=>res(!!window.Html5Qrcode); s.onerror=()=>res(false); document.head.appendChild(s);});}
+  window.abrirScanner=async function(readerId,inputId){
+    const box=$(readerId), input=$(inputId); if(!box||!input)return;
+    await window.cerrarScannerActivo();
+    box.style.display='block'; box.innerHTML='<div class="p-2 text-success fw-bold">Abriendo cámara...</div>'; ponerX(box);
+    if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1'){
+      box.innerHTML='<div class="scan-bad mt-2">La cámara requiere HTTPS. Abre Render con https:// y permite cámara.</div>'; ponerX(box); return;
+    }
+    if(!(await loadQr())){box.innerHTML='<div class="scan-bad mt-2">No cargó la librería del lector.</div>'; ponerX(box); return;}
+    try{
+      const scanner=new Html5Qrcode(readerId); window.__scannerActivo253=scanner;
+      const cams=await Html5Qrcode.getCameras().catch(()=>[]);
+      const camera=(cams&&cams.length)?{deviceId:{exact:cams[cams.length-1].id}}:{facingMode:{ideal:'environment'}};
+      await scanner.start(camera,{fps:12,qrbox:{width:260,height:180}},async decoded=>{
+        let val=String(decoded||'').trim();
+        if(inputId==='dniTrab'||inputId==='dniAvance') val=val.replace(/\D/g,'').slice(-8);
+        input.value=val; input.dispatchEvent(new Event('input',{bubbles:true})); input.dispatchEvent(new Event('change',{bubbles:true}));
+        await window.cerrarScannerActivo();
+      },()=>{});
+      ponerX(box);
+      const mo=new MutationObserver(()=>ponerX(box)); mo.observe(box,{childList:true,subtree:false}); setTimeout(()=>mo.disconnect(),15000);
+    }catch(e){box.innerHTML='<div class="scan-bad mt-2">No se pudo activar cámara. Permite cámara en el candado del navegador.</div>'; ponerX(box);}
+  };
+})();
+</script>
 </body></html>
 """
 
@@ -885,7 +937,7 @@ def detalle_hoja(hoja_id):
         {% if tab=='labores' %}
           {% for l in labores %}<a class="text-decoration-none" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='trabajadores', labor_id=l.id)}}"><div class="worker-card labor-card-compact"><div class="worker-title"><div>ACTIVIDAD<br><b>{{l.grupo}}</b></div><div class="text-end">LABOR<br><b>{{l.subgrupo or 'SIN LABOR'}}</b></div></div><div class="mt-2"><span class="small-label">CONSUMIDOR</span> <b class="labor-main">{{l.labor or 'SIN CONSUMIDOR'}}</b><br><span class="small-label">RESPONSABLE</span> <b class="resp-main">{{l.responsable or h.responsable}}</b></div><div class="worker-grid mt-2"><div><div class="mini-badge {{'bg-y' if l.turno=='NOCHE' else 'bg-g'}}">{{l.turno}}</div></div><div><div class="mini-badge bg-y">{{l.tipo_tareo}}</div></div><div><div class="mini-badge bg-g">ACTIVA</div></div></div></div></a>{% else %}<div class="worker-card text-center text-muted">Presiona <b>+</b> para crear actividad, labor y consumidor.</div>{% endfor %}
         {% elif tab=='trabajadores' %}
-          {% for r in tareos %}<div class="worker-card trabajador-card-ref {{'editable-tareo' if h.estado!='ENVIADA' else ''}}"><div class="worker-title"><div>TRABAJADOR<br><b>{{r.trabajador}}</b></div><div>NRO.DOCUMENTO<br><b>{{r.dni}}</b></div></div><div class="trabajador-grid-ref"><div><label>H.INICIO</label><div class="time-box">{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}</div></div><div><label>H.FIN</label><div class="time-box">{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}</div></div><div><label>H.NORMAL</label><div class="metric-box">{{'%.2f'|format((r.horas or 0) - (r.horas_nocturnas or 0))}}</div></div><div><label>REF.INI</label><div class="time-box">{{r.ref_inicio or '12:00'}}</div></div><div><label>REF.FIN</label><div class="time-box">{{r.ref_fin or '13:00'}}</div></div><div><label>H.NOCTURNO</label><div class="metric-box">{{'%.2f'|format(r.horas_nocturnas or 0)}}</div></div><div><label>ESTADO</label><div class="mini-badge bg-g">FIN TOTAL</div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><button type="button" class="btn-edit-tareo" data-id="{{r.id}}" data-hi="{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}" data-hf="{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}" data-ri="{{r.ref_inicio or '12:00'}}" data-rf="{{r.ref_fin or '13:00'}}">Modificar</button><a class="danger" href="{{url_for('eliminar_tareo', tareo_id=r.id)}}" onclick="return confirm('¿Eliminar trabajador del tareo?')">Eliminar</a></div>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el <b>hombresito +</b> para registrar trabajador por QR/código/digitación.</div>{% endfor %}
+          {% for r in tareos %}<div class="worker-card trabajador-card-ref {{'editable-tareo' if h.estado!='ENVIADA' else ''}}"><div class="worker-title"><div>TRABAJADOR<br><b>{{r.trabajador}}</b></div><div>NRO.DOCUMENTO<br><b>{{r.dni}}</b></div></div><div class="trabajador-grid-ref"><div><label>H.INICIO</label><div class="time-box">{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}</div></div><div><label>H.FIN</label><div class="time-box">{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}</div></div><div><label>H.NORMAL</label><div class="metric-box">{{'%.2f'|format((r.horas or 0) - (r.horas_nocturnas or 0))}}</div></div><div><label>REF.INI</label><div class="time-box">{{r.ref_inicio or '12:00'}}</div></div><div><label>REF.FIN</label><div class="time-box">{{r.ref_fin or '13:00'}}</div></div><div><label>H.NOCTURNO</label><div class="metric-box">{{'%.2f'|format(r.horas_nocturnas or 0)}}</div></div><div><label>ESTADO</label><div class="mini-badge bg-g">FIN TOTAL</div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><button type="button" class="btn-edit-tareo" onclick="abrirEditarTareo('{{r.id}}','{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}','{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}','{{r.ref_inicio or '12:00'}}','{{r.ref_fin or '13:00'}}')" data-id="{{r.id}}" data-hi="{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}" data-hf="{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}" data-ri="{{r.ref_inicio or '12:00'}}" data-rf="{{r.ref_fin or '13:00'}}">Modificar</button><a class="danger" href="{{url_for('eliminar_tareo', tareo_id=r.id)}}" onclick="return confirm('¿Eliminar trabajador del tareo?')">Eliminar</a></div>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el <b>hombresito +</b> para registrar trabajador por QR/código/digitación.</div>{% endfor %}
         {% else %}
           {% for l in lecturas %}<div class="worker-card avance-card-ref"><span class="person-dot"><i class="bi bi-person-circle"></i></span><div class="worker-title"><div>TRABAJADOR<br><b>{{l.trabajador}}</b></div><div>NRO.DOC.<br><b>{{l.dni}}</b></div></div><div class="small-label mt-1">HORA TOMA REGISTRO</div><div class="small-value">{{l.fecha_hora}} · {{l.metodo or 'DIGITACIÓN'}}</div><div class="worker-grid avance-grid cantidad-only"><div><label>CANTIDAD</label><div class="mini-badge bg-y">{{'%.2f'|format(l.a_diurno or 0)}}</div></div><div><label>UNIDAD</label><div class="mini-badge bg-y">BALDE</div></div><div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><button type="button" onclick="abrirEditarAvance('{{l.id}}','{{l.a_diurno or 0}}')">Modificar</button><a class="danger" href="{{url_for('eliminar_lectura', lectura_id=l.id)}}" onclick="return confirm('¿Eliminar avance?')">Eliminar</a></div>{% else %}<i class="bi bi-lock text-muted"></i>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el icono de escaneo para registrar avance por QR/código/digitación.</div>{% endfor %}
         {% endif %}<div class="leaf"></div>
@@ -1095,9 +1147,13 @@ def detalle_hoja(hoja_id):
   window.setCampoHorario=setCampo;
   
   window.abrirEditarTareo=function(id,hi,hf,ri,rf){
-    const f=$('frmEditTareo'); if(!f){alert('No se pudo abrir editor.');return;}
-    f.action='/tareo/'+id+'/editar-horas'; $('editHi').value=hi; $('editHf').value=hf; $('editRi').value=ri; $('editRf').value=rf;
-    new bootstrap.Modal($('modalEditTareo')).show();
+    const f=$('frmEditTareo'); if(!f){alert('No se pudo abrir editor de horario.');return;}
+    document.querySelectorAll('.card-menu.show').forEach(m=>m.classList.remove('show'));
+    f.action='/tareo/'+id+'/editar-horas';
+    $('editHi').value=hi||'06:30'; $('editHf').value=hf||'16:30'; $('editRi').value=ri||'12:00'; $('editRf').value=rf||'13:00';
+    const modalEl=$('modalEditTareo');
+    if(window.bootstrap&&bootstrap.Modal){bootstrap.Modal.getOrCreateInstance(modalEl).show();}
+    else {modalEl.style.display='block'; modalEl.classList.add('show');}
   };
 
   document.addEventListener('click',e=>{
@@ -1128,6 +1184,8 @@ def detalle_hoja(hoja_id):
     if(b>1440 && c<a){c+=1440; d+=1440;}
     if(!(a<=c && c<d && d<=b)) return {ok:false,msg:'El refrigerio debe quedar dentro del horario de inicio y fin de trabajo.'};
     if((d-c)>(b-a)) return {ok:false,msg:'El refrigerio no puede ser mayor que la jornada.'};
+    const durJ=b-a, durN=durJ-(d-c);
+    if(durJ>16*60 || durN>15*60) return {ok:false,msg:'Horario incoherente: la jornada supera el máximo permitido. Revise inicio, fin y refrigerio.'};
     return {ok:true,msg:'Horario coherente.'};
   }
   function validarFormHorario(form, ids){
