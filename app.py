@@ -710,6 +710,16 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
 .ios-wheel-sep{pointer-events:none;position:absolute;top:79px;bottom:79px;left:50%;width:1px;background:#e5e7eb;z-index:3;}
 input.ios-time-input{cursor:pointer!important;background:#fff!important;caret-color:transparent!important;}
 input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;box-shadow:0 0 0 .25rem rgba(47,119,59,.18)!important;}
+
+/* PATCH 254: minutos 00-59 y horas/títulos centrados */
+#modalHora .row.g-2 label.form-label,
+#modalEditarTareo .row.g-2 label.form-label{display:block!important;text-align:center!important;font-weight:900!important;color:#2f773b!important;}
+#modalHora .row.g-2 input.form-control,
+#modalEditarTareo .row.g-2 input.form-control,
+#horaInicioDefault,#horaFinDefault,#refInicioDefault,#refFinDefault,
+#horaInicioTrab,#horaFinTrab,#refInicioTrab,#refFinTrab{text-align:center!important;font-weight:900!important;font-size:16px!important;color:#173322!important;}
+.ios-wheel-col{scroll-behavior:smooth;}
+
 </style>
 
 <script>
@@ -718,7 +728,7 @@ input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;bo
   const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault','horaInicioTrab','horaFinTrab','refInicioTrab','refFinTrab'];
   const $=id=>document.getElementById(id);
   const pad=n=>String(Number(n)||0).padStart(2,'0');
-  function parseTime(v){let m=String(v||'00:00').match(/^(\d{1,2}):(\d{1,2})$/);let h=m?parseInt(m[1],10):0, mi=m?parseInt(m[2],10):0;h=Math.max(0,Math.min(23,isNaN(h)?0:h));mi=Math.max(0,Math.min(59,isNaN(mi)?0:mi));return [h, Math.round(mi/5)*5>55?55:Math.round(mi/5)*5];}
+  function parseTime(v){let m=String(v||'00:00').match(/^(\d{1,2}):(\d{1,2})$/);let h=m?parseInt(m[1],10):0, mi=m?parseInt(m[2],10):0;h=Math.max(0,Math.min(23,isNaN(h)?0:h));mi=Math.max(0,Math.min(59,isNaN(mi)?0:mi));return [h, mi];}
   function build(){
     if($('iosTimeWheelBackdrop'))return;
     const html=`<div id="iosTimeWheelBackdrop" class="ios-time-wheel-backdrop">
@@ -734,7 +744,7 @@ input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;bo
     document.body.insertAdjacentHTML('beforeend',html);
     const h=$('iosWheelHours'), m=$('iosWheelMinutes');
     h.innerHTML=Array.from({length:24},(_,i)=>`<div class="ios-wheel-item" data-v="${i}">${pad(i)}</div>`).join('');
-    m.innerHTML=Array.from({length:12},(_,i)=>`<div class="ios-wheel-item" data-v="${i*5}">${pad(i*5)}</div>`).join('');
+    m.innerHTML=Array.from({length:60},(_,i)=>`<div class="ios-wheel-item" data-v="${i}">${pad(i)}</div>`).join('');
     h.addEventListener('scroll',()=>requestAnimationFrame(updateActive));
     m.addEventListener('scroll',()=>requestAnimationFrame(updateActive));
     h.addEventListener('click',ev=>{const it=ev.target.closest('.ios-wheel-item'); if(it)scrollToVal(h,Number(it.dataset.v));});
@@ -745,13 +755,13 @@ input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;bo
   }
   let current=null;
   function itemHeight(){return 38;}
-  function scrollToVal(col,val){col.scrollTo({top:val/Number(col.id==='iosWheelMinutes'?5:1)*itemHeight(),behavior:'smooth'});setTimeout(updateActive,140);}
-  function selected(col){const div=Math.round(col.scrollTop/itemHeight());return col.id==='iosWheelMinutes'?Math.max(0,Math.min(55,div*5)):Math.max(0,Math.min(23,div));}
+  function scrollToVal(col,val){col.scrollTo({top:val*itemHeight(),behavior:'smooth'});setTimeout(updateActive,140);}
+  function selected(col){const div=Math.round(col.scrollTop/itemHeight());return col.id==='iosWheelMinutes'?Math.max(0,Math.min(59,div)):Math.max(0,Math.min(23,div));}
   function updateActive(){
     const h=$('iosWheelHours'), m=$('iosWheelMinutes'); if(!h||!m)return;
     const hv=selected(h), mv=selected(m);
     h.querySelectorAll('.ios-wheel-item').forEach((it,i)=>it.classList.toggle('active',i===hv));
-    m.querySelectorAll('.ios-wheel-item').forEach((it,i)=>it.classList.toggle('active',i*5===mv));
+    m.querySelectorAll('.ios-wheel-item').forEach((it,i)=>it.classList.toggle('active',i===mv));
     if(current){current.value=pad(hv)+':'+pad(mv); current.dispatchEvent(new Event('input',{bubbles:true})); current.dispatchEvent(new Event('change',{bubbles:true})); syncDisplay();}
   }
   function syncDisplay(){
@@ -766,7 +776,7 @@ input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;bo
     const [h,m]=parseTime(input.value);
     const back=$('iosTimeWheelBackdrop'), hc=$('iosWheelHours'), mc=$('iosWheelMinutes');
     back.style.display='flex';
-    hc.scrollTop=h*itemHeight(); mc.scrollTop=(m/5)*itemHeight();
+    hc.scrollTop=h*itemHeight(); mc.scrollTop=m*itemHeight();
     setTimeout(()=>{updateActive();},30);
   }
   function close(){const b=$('iosTimeWheelBackdrop'); if(b)b.style.display='none'; current=null;}
