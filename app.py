@@ -379,6 +379,15 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
 .scanner-close-x{position:absolute!important;right:8px!important;top:8px!important;z-index:99999!important;width:36px!important;height:36px!important;border:0!important;border-radius:999px!important;background:#dc2626!important;color:#fff!important;font-size:24px!important;font-weight:900!important;line-height:34px!important;text-align:center!important;box-shadow:0 3px 10px rgba(0,0,0,.28)!important;}
 .scanner-close-x:hover{background:#b91c1c!important;}
 [id^="reader"]{position:relative!important;min-height:0;}
+
+
+/* PATCH 253: selector táctil tipo iOS para horas HH:MM */
+.ios-time-picker{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:8px;height:154px;margin:8px 0 10px;padding:42px 10px;background:#f7fff8;border:1px solid #cfe6d4;border-radius:14px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.ios-time-picker:before{content:'';position:absolute;left:10px;right:10px;top:60px;height:34px;background:rgba(47,119,59,.10);border:1px solid #b7d8bd;border-radius:9px;pointer-events:none;z-index:1}
+.ios-time-picker:after{content:':';position:absolute;left:50%;top:58px;transform:translateX(-50%);font-size:27px;font-weight:900;color:#166534;z-index:2;pointer-events:none}
+.ios-wheel{height:70px;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;text-align:center;z-index:3;scrollbar-width:none;background:transparent;border:0}
+.ios-wheel::-webkit-scrollbar{display:none}.ios-wheel .ios-pad{height:18px}.ios-wheel button{display:block;width:100%;height:34px;border:0;background:transparent;scroll-snap-align:center;font-size:20px;font-weight:900;color:#5f6b62;line-height:34px}.ios-wheel button.active{color:#006b2e;font-size:23px}.ios-time-label{text-align:center;font-size:10px;font-weight:900;color:#166534;margin-top:-4px;margin-bottom:3px}.ios-time-hint{font-size:9px;color:#517a58;text-align:center;font-weight:800;margin-top:-5px;margin-bottom:4px}
+
 </style></head><body class="{{ 'login-page' if not session.get('usuario') else '' }}"><div class="app-bg"><main class="shell">
 {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="phone-wrap mt-2">{% for cat,msg in messages %}<div class="alert alert-{{cat}} shadow-sm">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
 {{ body|safe }}</main></div>
@@ -1150,7 +1159,7 @@ def detalle_hoja(hoja_id):
     const f=$('frmEditTareo'); if(!f){alert('No se pudo abrir editor de horario.');return;}
     document.querySelectorAll('.card-menu.show').forEach(m=>m.classList.remove('show'));
     f.action='/tareo/'+id+'/editar-horas';
-    $('editHi').value=hi||'06:30'; $('editHf').value=hf||'16:30'; $('editRi').value=ri||'12:00'; $('editRf').value=rf||'13:00';
+    $('editHi').value=hi||'06:30'; $('editHf').value=hf||'16:30'; $('editRi').value=ri||'12:00'; $('editRf').value=rf||'13:00'; setTimeout(()=>{try{window.instalarSelectorHorarioIOS&&window.instalarSelectorHorarioIOS();}catch(e){}},120);
     const modalEl=$('modalEditTareo');
     if(!modalEl){ window.location.href='/tareo/'+id+'/editar-horas-form'; return; }
     modalEl.style.zIndex='20000';
