@@ -937,7 +937,7 @@ def detalle_hoja(hoja_id):
         {% if tab=='labores' %}
           {% for l in labores %}<a class="text-decoration-none" href="{{url_for('detalle_hoja',hoja_id=h.id,tab='trabajadores', labor_id=l.id)}}"><div class="worker-card labor-card-compact"><div class="worker-title"><div>ACTIVIDAD<br><b>{{l.grupo}}</b></div><div class="text-end">LABOR<br><b>{{l.subgrupo or 'SIN LABOR'}}</b></div></div><div class="mt-2"><span class="small-label">CONSUMIDOR</span> <b class="labor-main">{{l.labor or 'SIN CONSUMIDOR'}}</b><br><span class="small-label">RESPONSABLE</span> <b class="resp-main">{{l.responsable or h.responsable}}</b></div><div class="worker-grid mt-2"><div><div class="mini-badge {{'bg-y' if l.turno=='NOCHE' else 'bg-g'}}">{{l.turno}}</div></div><div><div class="mini-badge bg-y">{{l.tipo_tareo}}</div></div><div><div class="mini-badge bg-g">ACTIVA</div></div></div></div></a>{% else %}<div class="worker-card text-center text-muted">Presiona <b>+</b> para crear actividad, labor y consumidor.</div>{% endfor %}
         {% elif tab=='trabajadores' %}
-          {% for r in tareos %}<div class="worker-card trabajador-card-ref {{'editable-tareo' if h.estado!='ENVIADA' else ''}}"><div class="worker-title"><div>TRABAJADOR<br><b>{{r.trabajador}}</b></div><div>NRO.DOCUMENTO<br><b>{{r.dni}}</b></div></div><div class="trabajador-grid-ref"><div><label>H.INICIO</label><div class="time-box">{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}</div></div><div><label>H.FIN</label><div class="time-box">{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}</div></div><div><label>H.NORMAL</label><div class="metric-box">{{'%.2f'|format((r.horas or 0) - (r.horas_nocturnas or 0))}}</div></div><div><label>REF.INI</label><div class="time-box">{{r.ref_inicio or '12:00'}}</div></div><div><label>REF.FIN</label><div class="time-box">{{r.ref_fin or '13:00'}}</div></div><div><label>H.NOCTURNO</label><div class="metric-box">{{'%.2f'|format(r.horas_nocturnas or 0)}}</div></div><div><label>ESTADO</label><div class="mini-badge bg-g">FIN TOTAL</div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><button type="button" class="btn-edit-tareo" onclick="abrirEditarTareo('{{r.id}}','{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}','{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}','{{r.ref_inicio or '12:00'}}','{{r.ref_fin or '13:00'}}')" data-id="{{r.id}}" data-hi="{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}" data-hf="{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}" data-ri="{{r.ref_inicio or '12:00'}}" data-rf="{{r.ref_fin or '13:00'}}">Modificar</button><a class="danger" href="{{url_for('eliminar_tareo', tareo_id=r.id)}}" onclick="return confirm('¿Eliminar trabajador del tareo?')">Eliminar</a></div>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el <b>hombresito +</b> para registrar trabajador por QR/código/digitación.</div>{% endfor %}
+          {% for r in tareos %}<div class="worker-card trabajador-card-ref {{'editable-tareo' if h.estado!='ENVIADA' else ''}}"><div class="worker-title"><div>TRABAJADOR<br><b>{{r.trabajador}}</b></div><div>NRO.DOCUMENTO<br><b>{{r.dni}}</b></div></div><div class="trabajador-grid-ref"><div><label>H.INICIO</label><div class="time-box">{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}</div></div><div><label>H.FIN</label><div class="time-box">{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}</div></div><div><label>H.NORMAL</label><div class="metric-box">{{'%.2f'|format((r.horas or 0) - (r.horas_nocturnas or 0))}}</div></div><div><label>REF.INI</label><div class="time-box">{{r.ref_inicio or '12:00'}}</div></div><div><label>REF.FIN</label><div class="time-box">{{r.ref_fin or '13:00'}}</div></div><div><label>H.NOCTURNO</label><div class="metric-box">{{'%.2f'|format(r.horas_nocturnas or 0)}}</div></div><div><label>ESTADO</label><div class="mini-badge bg-g">FIN TOTAL</div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><a href="{{url_for('editar_horas_tareo_form', tareo_id=r.id)}}" class="btn-edit-tareo" onclick="abrirEditarTareo('{{r.id}}','{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}','{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}','{{r.ref_inicio or '12:00'}}','{{r.ref_fin or '13:00'}}'); return false;" data-id="{{r.id}}" data-hi="{{r.hora_inicio or ('22:00' if r.turno=='NOCHE' else '06:30')}}" data-hf="{{r.hora_fin or ('06:00' if r.turno=='NOCHE' else '16:30')}}" data-ri="{{r.ref_inicio or '12:00'}}" data-rf="{{r.ref_fin or '13:00'}}">Modificar</a><a class="danger" href="{{url_for('eliminar_tareo', tareo_id=r.id)}}" onclick="return confirm('¿Eliminar trabajador del tareo?')">Eliminar</a></div>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el <b>hombresito +</b> para registrar trabajador por QR/código/digitación.</div>{% endfor %}
         {% else %}
           {% for l in lecturas %}<div class="worker-card avance-card-ref"><span class="person-dot"><i class="bi bi-person-circle"></i></span><div class="worker-title"><div>TRABAJADOR<br><b>{{l.trabajador}}</b></div><div>NRO.DOC.<br><b>{{l.dni}}</b></div></div><div class="small-label mt-1">HORA TOMA REGISTRO</div><div class="small-value">{{l.fecha_hora}} · {{l.metodo or 'DIGITACIÓN'}}</div><div class="worker-grid avance-grid cantidad-only"><div><label>CANTIDAD</label><div class="mini-badge bg-y">{{'%.2f'|format(l.a_diurno or 0)}}</div></div><div><label>UNIDAD</label><div class="mini-badge bg-y">BALDE</div></div><div></div></div>{% if h.estado!='ENVIADA' %}<div class="card-action-chevron" onclick="event.stopPropagation();toggleCardMenu(this)" title="Acciones"></div><div class="card-menu" onclick="event.stopPropagation()"><button type="button" onclick="abrirEditarAvance('{{l.id}}','{{l.a_diurno or 0}}')">Modificar</button><a class="danger" href="{{url_for('eliminar_lectura', lectura_id=l.id)}}" onclick="return confirm('¿Eliminar avance?')">Eliminar</a></div>{% else %}<i class="bi bi-lock text-muted"></i>{% endif %}</div>{% else %}<div class="worker-card text-center text-muted">Presiona el icono de escaneo para registrar avance por QR/código/digitación.</div>{% endfor %}
         {% endif %}<div class="leaf"></div>
@@ -1152,8 +1152,10 @@ def detalle_hoja(hoja_id):
     f.action='/tareo/'+id+'/editar-horas';
     $('editHi').value=hi||'06:30'; $('editHf').value=hf||'16:30'; $('editRi').value=ri||'12:00'; $('editRf').value=rf||'13:00';
     const modalEl=$('modalEditTareo');
+    if(!modalEl){ window.location.href='/tareo/'+id+'/editar-horas-form'; return; }
+    modalEl.style.zIndex='20000';
     if(window.bootstrap&&bootstrap.Modal){bootstrap.Modal.getOrCreateInstance(modalEl).show();}
-    else {modalEl.style.display='block'; modalEl.classList.add('show');}
+    else {modalEl.style.display='block'; modalEl.classList.add('show'); modalEl.removeAttribute('aria-hidden');}
   };
 
   document.addEventListener('click',e=>{
@@ -1184,8 +1186,8 @@ def detalle_hoja(hoja_id):
     if(b>1440 && c<a){c+=1440; d+=1440;}
     if(!(a<=c && c<d && d<=b)) return {ok:false,msg:'El refrigerio debe quedar dentro del horario de inicio y fin de trabajo.'};
     if((d-c)>(b-a)) return {ok:false,msg:'El refrigerio no puede ser mayor que la jornada.'};
-    const durJ=b-a, durN=durJ-(d-c);
-    if(durJ>16*60 || durN>15*60) return {ok:false,msg:'Horario incoherente: la jornada supera el máximo permitido. Revise inicio, fin y refrigerio.'};
+    // Permite jornadas en formato 24 horas e incluso cruce de medianoche.
+    // La única regla bloqueante es que el refrigerio quede dentro del inicio y fin de trabajo.
     return {ok:true,msg:'Horario coherente.'};
   }
   function validarFormHorario(form, ids){
@@ -1521,6 +1523,46 @@ def guardar_registro_hoja(hoja_id, tab):
     return redirect(url_for('detalle_hoja', hoja_id=hoja_id, tab=tab, labor_id=labor_id or ''))
 
 
+
+
+@app.route('/tareo/<int:tareo_id>/editar-horas-form', methods=['GET'])
+@login_required
+def editar_horas_tareo_form(tareo_id):
+    r = row_to_dict(execute('SELECT * FROM tareos WHERE id=?', (tareo_id,), fetchone=True))
+    if not r:
+        flash('Registro de trabajador no encontrado.', 'danger')
+        return redirect(url_for('hojas_tareo'))
+    h = row_to_dict(execute('SELECT * FROM hojas_tareo WHERE id=?', (r.get('hoja_id'),), fetchone=True))
+    if not h:
+        flash('Hoja no encontrada.', 'danger')
+        return redirect(url_for('hojas_tareo'))
+    hi = r.get('hora_inicio') or ('22:00' if r.get('turno') == 'NOCHE' else '06:30')
+    hf = r.get('hora_fin') or ('06:00' if r.get('turno') == 'NOCHE' else '16:30')
+    ri = r.get('ref_inicio') or '12:00'
+    rf = r.get('ref_fin') or '13:00'
+    body = f'''
+    <div class="phone-wrap">
+      <div class="page-card p-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h5 class="fw-bold text-success m-0"><i class="bi bi-pencil-square"></i> Modificar horario</h5>
+          <a class="back-mini" href="{url_for('detalle_hoja', hoja_id=r.get('hoja_id'), tab='trabajadores', labor_id=r.get('labor_id') or '')}">×</a>
+        </div>
+        <div class="alert alert-light border small mb-2">
+          Trabajador: <b>{r.get('trabajador') or ''}</b><br>DNI: <b>{r.get('dni') or ''}</b>
+        </div>
+        <form method="post" action="{url_for('editar_horas_tareo', tareo_id=tareo_id)}" id="frmEditTareoStandalone">
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label">Hora inicio</label><input name="hora_inicio" class="form-control" value="{hi}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
+            <div class="col-6"><label class="form-label">Hora fin</label><input name="hora_fin" class="form-control" value="{hf}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
+            <div class="col-6"><label class="form-label">Ref. inicio</label><input name="ref_inicio" class="form-control" value="{ri}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
+            <div class="col-6"><label class="form-label">Ref. fin</label><input name="ref_fin" class="form-control" value="{rf}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
+          </div>
+          <div class="field-help mt-2">Se permiten horarios 24 horas y cruce de medianoche. El refrigerio debe estar dentro de la jornada.</div>
+          <button class="btn btn-green w-100 mt-3" type="submit">GUARDAR CAMBIOS</button>
+        </form>
+      </div>
+    </div>'''
+    return render_template_string(BASE_HTML, title='Modificar horario', body=body)
 
 @app.route('/tareo/<int:tareo_id>/editar-horas', methods=['POST'])
 @login_required
