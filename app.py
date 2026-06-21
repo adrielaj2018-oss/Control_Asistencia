@@ -476,7 +476,7 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
 (function(){
  const $=id=>document.getElementById(id);
  const pad=n=>String(Number(n)||0).padStart(2,'0');
- function minToTime(m){m=Math.max(0,Math.min(1435,parseInt(m||0,10)));return pad(Math.floor(m/60))+':'+pad(Math.round(m%60/5)*5).replace('60','55');}
+ function minToTime(m){m=Math.max(0,Math.min(1435,parseInt(m||0,10)));return pad(Math.floor(m/60))+':'+pad(m%60);}
  function toMin(v){let p=String(v||'00:00').split(':'),h=parseInt(p[0]||0,10),m=parseInt(p[1]||0,10);return Math.max(0,Math.min(1435,(isNaN(h)?0:h)*60+(isNaN(m)?0:m)));}
  let active='horaInicioDefault';
  function setActive(id){active=id; ['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'].forEach(x=>{let e=$(x); if(e)e.classList.toggle('border-success',x===id);}); let s=$('timeSlider24'), v=$('touchClockValue'), e=$(id); if(e&&s){s.value=toMin(e.value); if(v)v.textContent=e.value;} let box=$('clockPickFields'); if(box)[...box.querySelectorAll('button')].forEach(b=>b.classList.toggle('active',b.dataset.target===id));}
@@ -561,9 +561,9 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
   const $=id=>document.getElementById(id);
   const pad=n=>String(Number(n)||0).padStart(2,'0');
   const ids=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault'];
-  function normTime(v){let s=String(v||'').trim().replace(/[^0-9:]/g,''); if(/^\d{3,4}$/.test(s)){s=s.padStart(4,'0');s=s.slice(0,2)+':'+s.slice(2)} let m=s.match(/^(\d{1,2}):(\d{1,2})$/); if(!m)return null; let h=Math.max(0,Math.min(23,parseInt(m[1]||0,10))); let mi=Math.max(0,Math.min(59,parseInt(m[2]||0,10))); return pad(h)+':'+pad(Math.round(mi/5)*5).replace('60','55');}
+  function normTime(v){let s=String(v||'').trim().replace(/[^0-9:]/g,''); if(/^\d{3,4}$/.test(s)){s=s.padStart(4,'0');s=s.slice(0,2)+':'+s.slice(2)} let m=s.match(/^(\d{1,2}):(\d{1,2})$/); if(!m)return null; let h=Math.max(0,Math.min(23,parseInt(m[1]||0,10))); let mi=Math.max(0,Math.min(59,parseInt(m[2]||0,10))); return pad(h)+':'+pad(mi);}
   function toMin(v){let t=normTime(v)||'00:00',p=t.split(':');return parseInt(p[0],10)*60+parseInt(p[1],10)}
-  function minToTime(m){m=((Math.round(Number(m||0)/5)*5)%1440+1440)%1440;return pad(Math.floor(m/60))+':'+pad(m%60)}
+  function minToTime(m){m=((Math.round(Number(m||0))%1440)+1440)%1440;return pad(Math.floor(m/60))+':'+pad(m%60)}
   function cloneClean(id){const e=$(id); if(!e||!e.parentNode)return null; const c=e.cloneNode(true); e.parentNode.replaceChild(c,e); return c;}
   function installHorarioOmar(){
     const modal=$('modalHora'); if(!modal)return;
@@ -586,7 +586,7 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
       let sx=0,sv=0,drag=false; e.addEventListener('pointerdown',ev=>{sx=ev.clientX;sv=toMin(e.value);drag=true;setActive(id);try{e.setPointerCapture(ev.pointerId)}catch(_){}}); e.addEventListener('pointermove',ev=>{if(!drag)return; const dx=ev.clientX-sx; if(Math.abs(dx)>2){setVal(sv+Math.round(dx/6)*5); ev.preventDefault();}}, {passive:false}); e.addEventListener('pointerup',()=>{drag=false;});
     });
     const box=$('clockPickFields'); if(box)[...box.querySelectorAll('button')].forEach(btn=>{['pointerdown','click','touchstart'].forEach(ev=>btn.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();setActive(btn.dataset.target);},true));});
-    const sl=$('timeSlider24'); if(sl){const calc=ev=>{const r=sl.getBoundingClientRect(); const x=(ev.touches&&ev.touches[0])?ev.touches[0].clientX:ev.clientX; if(typeof x==='number'&&r.width){return Math.round(Math.max(0,Math.min(1,(x-r.left)/r.width))*1435/5)*5;} return Number(sl.value||0);}; ['pointerdown','pointermove','touchstart','touchmove','click','input','change'].forEach(ev=>sl.addEventListener(ev,e=>{if(ev.includes('move')&&!(e.buttons||e.touches))return; e.preventDefault&&e.preventDefault(); e.stopPropagation&&e.stopPropagation(); setVal(calc(e));},{passive:false,capture:true}));}
+    const sl=$('timeSlider24'); if(sl){const calc=ev=>{const r=sl.getBoundingClientRect(); const x=(ev.touches&&ev.touches[0])?ev.touches[0].clientX:ev.clientX; if(typeof x==='number'&&r.width){return Math.round(Math.max(0,Math.min(1,(x-r.left)/r.width))*1435);} return Number(sl.value||0);}; ['pointerdown','pointermove','touchstart','touchmove','click','input','change'].forEach(ev=>sl.addEventListener(ev,e=>{if(ev.includes('move')&&!(e.buttons||e.touches))return; e.preventDefault&&e.preventDefault(); e.stopPropagation&&e.stopPropagation(); setVal(calc(e));},{passive:false,capture:true}));}
     setActive(active); sync();
   }
   document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalHora')setTimeout(installHorarioOmar,260);},true);
@@ -629,7 +629,7 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
   function save(){try{sessionStorage.setItem(key(),JSON.stringify(avancePre));}catch(e){} const h=$('avancePreJson'); if(h)h.value=JSON.stringify(avancePre);}
   function render(){const q=$('avanceQueue'); if(!q)return; save(); if(!avancePre.length){q.innerHTML='<div class="text-muted small text-center">Aún no hay avances pre-registrados.</div>';return;} q.innerHTML=avancePre.map((x,i)=>'<div class="queue-item"><div><b>'+x.dni+'</b><br><span>Cantidad: '+Number(x.cantidad||0).toFixed(2)+' · '+(x.metodo||'QR/CÓDIGO')+'</span></div><button type="button" class="btn btn-sm btn-outline-danger" data-del-avance="'+i+'">×</button></div>').join(''); q.querySelectorAll('[data-del-avance]').forEach(b=>b.onclick=()=>{avancePre.splice(Number(b.dataset.delAvance),1);render();});}
   function setMsg(ok,msg){const e=$('cantidadDetectada'); if(!e)return; e.style.display='block'; e.className=ok?'scan-ok mt-2':'scan-bad mt-2'; e.innerHTML=msg;}
-  function addPre(){const d=dni($('dniAvance')?.value); const c=Number($('cantidadAvance')?.value||0); const labor=$('avanceLaborId')?.value||''; if(d.length!==8){setMsg(false,'Primero registre/escanee el DNI del trabajador.');return false;} if(!labor){setMsg(false,'Primero seleccione una labor.');return false;} if(!(c>0)){setMsg(false,'Ingrese una cantidad mayor a cero.');return false;} const met=$('frmAvance')?.querySelector('select[name="metodo"]')?.value||'QR/CÓDIGO'; const exists=avancePre.find(x=>x.dni===d); if(exists){exists.cantidad=c;exists.metodo=met;} else {avancePre.push({dni:d,cantidad:c,a_noct:0,metodo:met});} render(); setMsg(true,'✓ Pre-registro agregado: <b>'+d+'</b> · Cantidad <b>'+c.toFixed(2)+'</b>. Falta GUARDAR AVANCE FINAL.'); try{beep();}catch(e){} const ca=$('codigoAvance'); if(ca)ca.value=''; const da=$('dniAvance'); if(da)da.focus(); return true;}
+  function addPre(){const d=dni($('dniAvance')?.value); const c=Number($('cantidadAvance')?.value||0); const labor=$('avanceLaborId')?.value||''; if(d.length!==8){setMsg(false,'Primero registre/escanee el DNI del trabajador.');return false;} if(!labor){setMsg(false,'Primero seleccione una labor.');return false;} if(!(c>0)){setMsg(false,'Ingrese una cantidad mayor a cero.');return false;} const met=$('frmAvance')?.querySelector('select[name="metodo"]')?.value||'QR/CÓDIGO'; const exists=avancePre.find(x=>x.dni===d); if(exists){exists.cantidad=c;exists.metodo=met;} else {avancePre.push({dni:d,cantidad:c,a_noct:0,metodo:met});} render(); setMsg(true,'✓ Pre-registro agregado: <b>'+d+'</b> · Cantidad <b>'+c.toFixed(2)+'</b>. Falta GUARDAR AVANCE FINAL.'); try{beep();}catch(e){} const ca=$('codigoAvance'); if(ca)ca.value=''; const da=$('dniAvance'); if(da){da.value=''; da.dispatchEvent(new Event('input',{bubbles:true})); da.dispatchEvent(new Event('change',{bubbles:true})); setTimeout(()=>da.focus(),80);} const st=$('avanceTrabStatus'); if(st){st.className='field-help mt-2'; st.innerHTML='Listo. Escanee o digite el siguiente DNI.';} return true;}
   function installAvance(){const m=$('modalAvance'); if(!m)return; load(); render(); const cod=$('codigoAvance'), cant=$('cantidadAvance'); if(cod&&!cod.dataset.pre251){cod.dataset.pre251='1'; cod.addEventListener('input',()=>{const v=num(cod.value); if(v>0&&cant) {cant.value=v.toFixed(2); setMsg(true,'Cantidad detectada: <b>'+v.toFixed(2)+'</b>');}},true); cod.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key==='Tab'){e.preventDefault(); addPre();}},true); cod.addEventListener('change',()=>{const v=num(cod.value); if(v>0&&cant) cant.value=v.toFixed(2); addPre();},true);} const form=$('frmAvance'); if(form&&!form.dataset.pre251){form.dataset.pre251='1'; form.addEventListener('submit',e=>{if(!avancePre.length){addPre();} if(!avancePre.length){e.preventDefault(); return false;} save(); sessionStorage.removeItem(key());},true);} }
   document.addEventListener('shown.bs.modal',e=>{if(e.target&&e.target.id==='modalAvance')setTimeout(installAvance,80);},true);
   document.addEventListener('DOMContentLoaded',()=>setTimeout(installAvance,300));
@@ -710,9 +710,11 @@ input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;bo
 
 /* PATCH 254: minutos 00-59 y horas/títulos centrados */
 #modalHora .row.g-2 label.form-label,
-#modalEditarTareo .row.g-2 label.form-label{display:block!important;text-align:center!important;font-weight:900!important;color:#2f773b!important;}
+#modalEditTareo .row.g-2 label.form-label,
+#frmEditTareoStandalone .row.g-2 label.form-label{display:block!important;text-align:center!important;font-weight:900!important;color:#2f773b!important;}
 #modalHora .row.g-2 input.form-control,
-#modalEditarTareo .row.g-2 input.form-control,
+#modalEditTareo .row.g-2 input.form-control,
+#frmEditTareoStandalone .row.g-2 input.form-control,
 #horaInicioDefault,#horaFinDefault,#refInicioDefault,#refFinDefault,
 #horaInicioTrab,#horaFinTrab,#refInicioTrab,#refFinTrab{text-align:center!important;font-weight:900!important;font-size:16px!important;color:#173322!important;}
 .ios-wheel-col{scroll-behavior:smooth;}
@@ -722,7 +724,7 @@ input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;bo
 <script>
 (function(){
   'use strict';
-  const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault','horaInicioTrab','horaFinTrab','refInicioTrab','refFinTrab'];
+  const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault','horaInicioTrab','horaFinTrab','refInicioTrab','refFinTrab','editHi','editHf','editRi','editRf'];
   const $=id=>document.getElementById(id);
   const pad=n=>String(Number(n)||0).padStart(2,'0');
   function parseTime(v){let m=String(v||'00:00').match(/^(\d{1,2}):(\d{1,2})$/);let h=m?parseInt(m[1],10):0, mi=m?parseInt(m[2],10):0;h=Math.max(0,Math.min(23,isNaN(h)?0:h));mi=Math.max(0,Math.min(59,isNaN(mi)?0:mi));return [h, mi];}
@@ -790,6 +792,43 @@ input.ios-time-input:focus{outline:0!important;border-color:#2f773b!important;bo
   document.addEventListener('click',e=>{const el=e.target&&e.target.closest&&e.target.closest('input'); if(el&&IDS.includes(el.id)){e.preventDefault();e.stopPropagation();openFor(el);}},true);
 })();
 </script>
+
+
+<script>
+/* PATCH 255: limpiar DNI después del pre-registro + Wheel Time Picker en modificar horario */
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  function clearAvanceDni(){
+    const d=$('dniAvance');
+    if(d && d.value){
+      d.value='';
+      d.dispatchEvent(new Event('input',{bubbles:true}));
+      d.dispatchEvent(new Event('change',{bubbles:true}));
+      setTimeout(()=>{try{d.focus({preventScroll:true});}catch(e){d.focus();}},70);
+    }
+    const st=$('avanceTrabStatus');
+    if(st){st.className='field-help mt-2'; st.innerHTML='Listo. Escanee o digite el siguiente DNI.';}
+  }
+  const obs=new MutationObserver(()=>{
+    const msg=$('cantidadDetectada');
+    if(msg && /Pre-registro agregado/i.test(msg.textContent||'')) clearAvanceDni();
+  });
+  document.addEventListener('shown.bs.modal',e=>{
+    if(e.target && e.target.id==='modalAvance'){
+      const m=$('cantidadDetectada'); if(m) obs.observe(m,{childList:true,subtree:true,characterData:true});
+    }
+    if(e.target && e.target.id==='modalEditTareo'){
+      setTimeout(()=>{
+        ['editHi','editHf','editRi','editRf'].forEach(id=>{
+          const el=$(id); if(el){el.classList.add('ios-time-input'); el.readOnly=true;}
+        });
+      },80);
+    }
+  },true);
+})();
+</script>
+
 </body></html>
 """
 
@@ -1228,7 +1267,7 @@ def detalle_hoja(hoja_id):
   function sincHorario(){const hi=$('horaInicioDefault')?.value||'06:30', hf=$('horaFinDefault')?.value||'16:30', ri=$('refInicioDefault')?.value||'12:00', rf=$('refFinDefault')?.value||'13:00'; [['horaInicioTrab',hi],['horaFinTrab',hf],['refInicioTrab',ri],['refFinTrab',rf]].forEach(([id,v])=>{const e=$(id); if(e)e.value=v;}); const h=horasNetas(hi,hf,ri,rf); const ht=$('horasTrab'); if(ht)ht.value=h; const box=$('horarioActivoTxt'); if(box)box.innerHTML='<b>Horario activo:</b> '+hi+' - '+hf+' / Refrigerio '+ri+' - '+rf+' / H.Normal '+h+'.';}
   function pintarReloj(){const input=activeInput(), tv=$('touchClockValue'), sl=$('timeSlider24'), pills=$('clockPickFields'); if(tv&&input)tv.textContent=input.value; if(sl&&input)sl.value=toMin(input.value); if(pills)pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===campoActivo));}
   function setCampo(id){campoActivo=id;pintarReloj();const el=$(id);if(el){try{el.focus({preventScroll:true});}catch(_){}}}
-  function setDesdeMinutos(m){const i=activeInput(); if(!i)return; i.value=minToTime(Math.round(Number(m||0)/5)*5); sincHorario(); pintarReloj();}
+  function setDesdeMinutos(m){const i=activeInput(); if(!i)return; i.value=minToTime(Math.round(Number(m||0))); sincHorario(); pintarReloj();}
   function instalarReloj(){
     const sl=$('timeSlider24'), pills=$('clockPickFields');
     if(pills){pills.querySelectorAll('button').forEach(b=>{b.onclick=(ev)=>{ev.preventDefault(); setCampo(b.dataset.target);}; b.onpointerdown=(ev)=>{ev.preventDefault(); setCampo(b.dataset.target);};});}
@@ -1654,10 +1693,10 @@ def editar_horas_tareo_form(tareo_id):
         </div>
         <form method="post" action="{url_for('editar_horas_tareo', tareo_id=tareo_id)}" id="frmEditTareoStandalone">
           <div class="row g-2">
-            <div class="col-6"><label class="form-label">Hora inicio</label><input name="hora_inicio" class="form-control" value="{hi}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
-            <div class="col-6"><label class="form-label">Hora fin</label><input name="hora_fin" class="form-control" value="{hf}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
-            <div class="col-6"><label class="form-label">Ref. inicio</label><input name="ref_inicio" class="form-control" value="{ri}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
-            <div class="col-6"><label class="form-label">Ref. fin</label><input name="ref_fin" class="form-control" value="{rf}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
+            <div class="col-6"><label class="form-label">Hora inicio</label><input id="editHi" name="hora_inicio" class="form-control" value="{hi}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
+            <div class="col-6"><label class="form-label">Hora fin</label><input id="editHf" name="hora_fin" class="form-control" value="{hf}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
+            <div class="col-6"><label class="form-label">Ref. inicio</label><input id="editRi" name="ref_inicio" class="form-control" value="{ri}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
+            <div class="col-6"><label class="form-label">Ref. fin</label><input id="editRf" name="ref_fin" class="form-control" value="{rf}" required pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"></div>
           </div>
           <div class="field-help mt-2">Se permiten horarios 24 horas y cruce de medianoche. El refrigerio debe estar dentro de la jornada.</div>
           <button class="btn btn-green w-100 mt-3" type="submit">GUARDAR CAMBIOS</button>
