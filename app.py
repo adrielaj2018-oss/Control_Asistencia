@@ -381,12 +381,10 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
 [id^="reader"]{position:relative!important;min-height:0;}
 
 
-/* PATCH 253: selector táctil tipo iOS para horas HH:MM */
-.ios-time-picker{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:8px;height:154px;margin:8px 0 10px;padding:42px 10px;background:#f7fff8;border:1px solid #cfe6d4;border-radius:14px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
-.ios-time-picker:before{content:'';position:absolute;left:10px;right:10px;top:60px;height:34px;background:rgba(47,119,59,.10);border:1px solid #b7d8bd;border-radius:9px;pointer-events:none;z-index:1}
-.ios-time-picker:after{content:':';position:absolute;left:50%;top:58px;transform:translateX(-50%);font-size:27px;font-weight:900;color:#166534;z-index:2;pointer-events:none}
-.ios-wheel{height:70px;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;text-align:center;z-index:3;scrollbar-width:none;background:transparent;border:0}
-.ios-wheel::-webkit-scrollbar{display:none}.ios-wheel .ios-pad{height:18px}.ios-wheel button{display:block;width:100%;height:34px;border:0;background:transparent;scroll-snap-align:center;font-size:20px;font-weight:900;color:#5f6b62;line-height:34px}.ios-wheel button.active{color:#006b2e;font-size:23px}.ios-time-label{text-align:center;font-size:10px;font-weight:900;color:#166534;margin-top:-4px;margin-bottom:3px}.ios-time-hint{font-size:9px;color:#517a58;text-align:center;font-weight:800;margin-top:-5px;margin-bottom:4px}
+/* PATCH 254: rueda táctil HH:MM directamente en campos de hora */
+.time-wheel-popup{position:fixed;left:50%;transform:translateX(-50%);width:min(330px,92vw);background:#fff;border:1px solid #d8ded8;border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.25);z-index:999999;padding:8px 10px 10px;display:none;user-select:none}
+.time-wheel-popup.show{display:block}.time-wheel-title{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;color:#166534;margin-bottom:4px}.time-wheel-close{border:0;background:transparent;color:#777;font-size:22px;font-weight:900;line-height:1}.time-wheel-body{position:relative;display:grid;grid-template-columns:1fr 24px 1fr;gap:2px;height:126px;overflow:hidden;background:#f7fff8;border:1px solid #cfe6d4;border-radius:12px;padding:0 8px}.time-wheel-body:before{content:'';position:absolute;left:10px;right:10px;top:46px;height:34px;background:rgba(47,119,59,.10);border-top:1px solid #b9d7bd;border-bottom:1px solid #b9d7bd;pointer-events:none;z-index:1}.time-wheel-col{height:126px;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;text-align:center;z-index:2;padding:46px 0}.time-wheel-col::-webkit-scrollbar{display:none}.time-wheel-item{height:34px;line-height:34px;scroll-snap-align:center;font-size:18px;font-weight:800;color:#8a928c}.time-wheel-item.active{font-size:22px;color:#0b6b2d;font-weight:900}.time-wheel-sep{display:grid;place-items:center;font-size:25px;font-weight:900;color:#166534;z-index:2}.time-wheel-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.time-wheel-actions button{height:34px;border-radius:9px;font-size:12px;font-weight:900}.time-wheel-ok{border:0;background:#2f773b;color:white}.time-wheel-now{border:1px solid #b9d7bd;background:#fff;color:#166534}.time-input-wheel{cursor:pointer!important;background:#fff!important}.time-input-wheel:focus{outline:2px solid #93c5fd!important;border-color:#2f773b!important}
+@media(max-width:480px){.time-wheel-popup{width:88vw}.time-wheel-body{height:118px}.time-wheel-col{height:118px;padding:42px 0}.time-wheel-body:before{top:42px}}
 
 </style></head><body class="{{ 'login-page' if not session.get('usuario') else '' }}"><div class="app-bg"><main class="shell">
 {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="phone-wrap mt-2">{% for cat,msg in messages %}<div class="alert alert-{{cat}} shadow-sm">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
@@ -697,6 +695,50 @@ body .modal-dialog{max-width:365px!important;margin:.55rem auto!important;}.moda
   };
 })();
 </script>
+
+
+<script>
+/* PATCH 254: selector tipo rueda iOS al tocar/clic en campos de horario */
+(function(){
+  'use strict';
+  const IDS=['horaInicioDefault','horaFinDefault','refInicioDefault','refFinDefault','horaInicioTrab','horaFinTrab','refInicioTrab','refFinTrab','editHoraInicio','editHoraFin','editRefInicio','editRefFin'];
+  const pad=n=>String(n).padStart(2,'0');
+  const toMin=v=>{let m=String(v||'00:00').match(/^(\d{1,2}):(\d{1,2})/); if(!m)return 0; return Math.max(0,Math.min(1435,(+m[1])*60+(+m[2])));};
+  const fmt=(h,m)=>pad(h)+':'+pad(m);
+  let activeInput=null, pop=null, hourCol=null, minCol=null, hideTimer=null;
+  function normalize(v){let m=String(v||'').match(/(\d{1,2})\D?(\d{2})?/); if(!m)return '00:00'; let h=Math.max(0,Math.min(23,parseInt(m[1]||0,10))); let mm=Math.max(0,Math.min(59,parseInt(m[2]||0,10))); mm=Math.round(mm/5)*5; if(mm>=60)mm=55; return fmt(h,mm);}
+  function build(){
+    if(pop)return;
+    pop=document.createElement('div'); pop.className='time-wheel-popup'; pop.innerHTML='<div class="time-wheel-title"><span>Seleccione hora</span><button type="button" class="time-wheel-close">×</button></div><div class="time-wheel-body"><div class="time-wheel-col" data-kind="h"></div><div class="time-wheel-sep">:</div><div class="time-wheel-col" data-kind="m"></div></div><div class="time-wheel-actions"><button type="button" class="time-wheel-now">Ahora</button><button type="button" class="time-wheel-ok">Aceptar</button></div>';
+    document.body.appendChild(pop);
+    hourCol=pop.querySelector('[data-kind="h"]'); minCol=pop.querySelector('[data-kind="m"]');
+    for(let h=0;h<24;h++){let d=document.createElement('div');d.className='time-wheel-item';d.dataset.val=h;d.textContent=pad(h);hourCol.appendChild(d);} 
+    for(let m=0;m<60;m+=5){let d=document.createElement('div');d.className='time-wheel-item';d.dataset.val=m;d.textContent=pad(m);minCol.appendChild(d);} 
+    pop.querySelector('.time-wheel-close').onclick=hide;
+    pop.querySelector('.time-wheel-ok').onclick=()=>{applyFromScroll(); hide();};
+    pop.querySelector('.time-wheel-now').onclick=()=>{let d=new Date(); setValue(d.getHours(), Math.round(d.getMinutes()/5)*5);};
+    [hourCol,minCol].forEach(col=>{
+      col.addEventListener('scroll',()=>{clearTimeout(col._t); col._t=setTimeout(()=>{applyFromScroll(); paintActive();},80);},{passive:true});
+      col.addEventListener('click',e=>{let it=e.target.closest('.time-wheel-item'); if(it){col.scrollTo({top:it.offsetTop-46,behavior:'smooth'}); setTimeout(()=>{applyFromScroll();paintActive();},140);}});
+    });
+    document.addEventListener('pointerdown',e=>{if(pop&&pop.classList.contains('show') && !pop.contains(e.target) && !isTimeInput(e.target)){hide();}},true);
+  }
+  function isTimeInput(el){return el && IDS.includes(el.id);}
+  function selected(col){let center=col.scrollTop+col.clientHeight/2, best=null, dist=9999; col.querySelectorAll('.time-wheel-item').forEach(it=>{let c=it.offsetTop+it.offsetHeight/2; let d=Math.abs(c-center); if(d<dist){dist=d;best=it;}}); return best?parseInt(best.dataset.val,10):0;}
+  function paintActive(){if(!hourCol||!minCol)return; let h=selected(hourCol), m=selected(minCol); hourCol.querySelectorAll('.time-wheel-item').forEach(it=>it.classList.toggle('active',+it.dataset.val===h)); minCol.querySelectorAll('.time-wheel-item').forEach(it=>it.classList.toggle('active',+it.dataset.val===m));}
+  function setValue(h,m){if(m>=60){m=55} h=Math.max(0,Math.min(23,h)); m=Math.max(0,Math.min(55,Math.round(m/5)*5)); if(hourCol)hourCol.scrollTo({top:h*34,behavior:'smooth'}); if(minCol)minCol.scrollTo({top:(m/5)*34,behavior:'smooth'}); if(activeInput){activeInput.value=fmt(h,m); activeInput.dispatchEvent(new Event('input',{bubbles:true})); activeInput.dispatchEvent(new Event('change',{bubbles:true})); syncDisplay(activeInput.value);} setTimeout(paintActive,180);}
+  function applyFromScroll(){if(!activeInput)return; const h=selected(hourCol), m=selected(minCol); activeInput.value=fmt(h,m); activeInput.dispatchEvent(new Event('input',{bubbles:true})); activeInput.dispatchEvent(new Event('change',{bubbles:true})); syncDisplay(activeInput.value);}
+  function syncDisplay(v){let tv=document.getElementById('touchClockValue'); if(tv)tv.textContent=v; let sl=document.getElementById('timeSlider24'); if(sl)sl.value=toMin(v); try{ if(typeof window.aplicarHorarioRegistro==='function') window.aplicarHorarioRegistro(); }catch(e){} }
+  function placeNear(el){let r=el.getBoundingClientRect(); let top=r.bottom+8; if(top+210>window.innerHeight) top=Math.max(8,r.top-210); pop.style.top=top+'px';}
+  function show(el){build(); activeInput=el; el.classList.add('time-input-wheel'); let val=normalize(el.value); el.value=val; const mins=toMin(val); pop.classList.add('show'); placeNear(el); setTimeout(()=>{hourCol.scrollTop=Math.floor(mins/60)*34; minCol.scrollTop=Math.round((mins%60)/5)*34; paintActive();},20);}
+  function hide(){if(pop)pop.classList.remove('show'); if(activeInput)activeInput.blur(); activeInput=null;}
+  function bind(){IDS.forEach(id=>{let el=document.getElementById(id); if(!el||el.dataset.wheel254==='1')return; el.dataset.wheel254='1'; el.setAttribute('inputmode','numeric'); el.setAttribute('placeholder','HH:MM'); el.classList.add('time-input-wheel'); el.readOnly=false; el.addEventListener('focus',()=>show(el)); el.addEventListener('click',()=>show(el)); el.addEventListener('touchstart',()=>show(el),{passive:true}); el.addEventListener('blur',()=>{clearTimeout(hideTimer); hideTimer=setTimeout(()=>{if(pop&&!pop.matches(':hover')){}},180);}); el.addEventListener('input',()=>{el.value=normalize(el.value); syncDisplay(el.value);});});}
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,250));
+  document.addEventListener('shown.bs.modal',()=>setTimeout(bind,120),true);
+  window.instalarSelectorRuedaHorario=bind;
+})();
+</script>
+
 </body></html>
 """
 
@@ -1159,7 +1201,7 @@ def detalle_hoja(hoja_id):
     const f=$('frmEditTareo'); if(!f){alert('No se pudo abrir editor de horario.');return;}
     document.querySelectorAll('.card-menu.show').forEach(m=>m.classList.remove('show'));
     f.action='/tareo/'+id+'/editar-horas';
-    $('editHi').value=hi||'06:30'; $('editHf').value=hf||'16:30'; $('editRi').value=ri||'12:00'; $('editRf').value=rf||'13:00'; setTimeout(()=>{try{window.instalarSelectorHorarioIOS&&window.instalarSelectorHorarioIOS();}catch(e){}},120);
+    $('editHi').value=hi||'06:30'; $('editHf').value=hf||'16:30'; $('editRi').value=ri||'12:00'; $('editRf').value=rf||'13:00';
     const modalEl=$('modalEditTareo');
     if(!modalEl){ window.location.href='/tareo/'+id+'/editar-horas-form'; return; }
     modalEl.style.zIndex='20000';
